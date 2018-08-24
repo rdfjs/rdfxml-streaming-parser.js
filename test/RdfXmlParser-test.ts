@@ -7,6 +7,9 @@ const streamifyString = require('streamify-string');
 const arrayifyStream = require('arrayify-stream');
 const quad = require('rdf-quad');
 
+/* Test inspired by https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-intro */
+/* (Some) tests are tagged with the section they apply to  */
+
 describe('RdfXmlParser', () => {
   it('should be constructable without args', () => {
     const instance = new RdfXmlParser();
@@ -76,6 +79,7 @@ abc`)).rejects.toBeTruthy();
     });
 
     describe('should error', () => {
+      // 2.10
       it('on node elements with both rdf:about and rdf:nodeID', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -86,6 +90,7 @@ abc`)).rejects.toBeTruthy();
           new Error('Found both rdf:about (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
       });
 
+      // 2.10
       it('on node elements with both rdf:nodeID and rdf:about', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -96,6 +101,7 @@ abc`)).rejects.toBeTruthy();
           new Error('Found both rdf:about (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
       });
 
+      // 2.10
       it('on property elements with both rdf:nodeID and rdf:about', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -108,6 +114,7 @@ abc`)).rejects.toBeTruthy();
           new Error('Found both rdf:resource (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
       });
 
+      // 2.10
       it('on property elements with both rdf:nodeID and rdf:about', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -119,6 +126,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(new Error('Found both rdf:resource and rdf:nodeID (abc).'));
       });
 
+      // 2.11
       it('on property elements with both rdf:parseType="Resource" and rdf:resource', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -132,6 +140,7 @@ abc`)).rejects.toBeTruthy();
             '(http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
+      // 2.12
       it('on property elements with both non-rdf:* properties and rdf:resource', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -145,6 +154,7 @@ abc`)).rejects.toBeTruthy();
             '(http://www.w3.org/TR/rdf-syntax-grammar).'));
       });
 
+      // 2.11
       it('on property elements with both rdf:parseType="Resource" and rdf:datatype', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -158,6 +168,7 @@ abc`)).rejects.toBeTruthy();
             '(http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
+      // 2.12
       it('on property elements with both non-rdf:* properties and rdf:datatype', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -170,6 +181,7 @@ abc`)).rejects.toBeTruthy();
           '(http://www.w3.org/TR/rdf-syntax-grammar).'));
       });
 
+      // 2.11
       it('on property elements with both rdf:parseType="Resource" and rdf:nodeID', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -182,6 +194,7 @@ abc`)).rejects.toBeTruthy();
           'with rdf:nodeID (abc)'));
       });
 
+      // 2.12
       it('on property elements with both non-rdf:* properties and rdf:nodeID', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -193,6 +206,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(new Error('Found both non-rdf:* property attributes and rdf:nodeID (abc).'));
       });
 
+      // 2.11
       it('on property elements with both rdf:resource and rdf:parseType="Resource"', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -205,6 +219,7 @@ abc`)).rejects.toBeTruthy();
           new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:resource'));
       });
 
+      // 2.12
       it('on property elements with both rdf:datatype and rdf:parseType="Resource"', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -218,6 +233,7 @@ abc`)).rejects.toBeTruthy();
             '(http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
+      // 2.11
       it('on property elements with both rdf:nodeID and rdf:parseType="Resource"', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -230,6 +246,7 @@ abc`)).rejects.toBeTruthy();
           'with rdf:nodeID (abc)'));
       });
 
+      // 2.11, 2.12
       it('on property elements with attributes and rdf:parseType="Resource"', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -242,6 +259,7 @@ abc`)).rejects.toBeTruthy();
           'are present'));
       });
 
+      // 2.11
       it('on property elements with rdf:parseType="Resource" and attributes', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -253,6 +271,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(new Error('Found illegal rdf:* properties on property element with attribute: abc'));
       });
 
+      // 2.12
       it('on property elements with rdf:resource and attributes', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -264,6 +283,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(new Error('Found illegal rdf:* properties on property element with attribute: abc'));
       });
 
+      // 2.12
       it('on property elements with rdf:datatype and attributes', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -275,6 +295,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(new Error('Found illegal rdf:* properties on property element with attribute: abc'));
       });
 
+      // 2.12
       it('on property elements with rdf:nodeID and attributes', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -288,12 +309,14 @@ abc`)).rejects.toBeTruthy();
     });
 
     describe('should parse', () => {
+      // 2.6
       it('an empty document', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />`))
           .toEqual([]);
       });
 
+      // 2.6
       it('an empty rdf:Description', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -305,6 +328,7 @@ abc`)).rejects.toBeTruthy();
           .toEqual([]);
       });
 
+      // 2.6
       it('a self-closing empty rdf:Description', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -315,6 +339,7 @@ abc`)).rejects.toBeTruthy();
           .toEqual([]);
       });
 
+      // 2.6
       it('an rdf:Description without attributes', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -326,6 +351,7 @@ abc`)).rejects.toBeTruthy();
           .toEqual([]);
       });
 
+      // 2.6
       it('a self-closing rdf:Description without attributes', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -336,6 +362,7 @@ abc`)).rejects.toBeTruthy();
           .toEqual([]);
       });
 
+      // 2.5
       it('an rdf:Description with an attribute', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -351,6 +378,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.5
       it('an rdf:Description without rdf:about and with an attribute', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -364,6 +392,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.5
       it('an rdf:Description with multiple attributes', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -382,6 +411,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.5
       it('an rdf:Description without rdf:about with multiple attributes and have the same blank node', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -408,6 +438,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.2
       it('an rdf:Description with a valid property element', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -425,6 +456,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.2
       it('nested property tags', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -449,6 +481,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.2
       it('nested property tags with IRIs', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -473,6 +506,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.3
       it('property values with strings', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -489,6 +523,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.2
       it('multiple rdf:Descriptions', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -528,6 +563,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.3
       it('multiple abbreviated rdf:Descriptions', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -558,6 +594,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.4
       it('empty property elements with rdf:resource', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -574,6 +611,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.4
       it('empty property elements with rdf:resource mixed with other tags', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -601,6 +639,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.7
       it('xml:lang on node elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -617,6 +656,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.7
       it('xml:lang on nested node elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -637,6 +677,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.7
       it('xml:lang resets on node elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -657,6 +698,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.7
       it('xml:lang on property elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -673,6 +715,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.7
       it('xml:lang resets on property elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -693,6 +736,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.7
       it('mixed xml:lang usage', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -727,6 +771,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.9
       it('rdf:datatype on property elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -742,6 +787,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.9
       it('rdf:datatype on property elements and ignore any higher-level xml:lang', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -757,6 +803,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.10
       it('rdf:nodeID on property elements as blank nodes', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -773,6 +820,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.10
       it('rdf:nodeID on node elements as blank nodes', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -786,6 +834,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.10
       it('rdf:nodeID on mixed node elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -813,6 +862,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.11
       it('nested property elements with rdf:parseType="resource"', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -838,6 +888,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.11
       it('and ignore rdf:parseType="resource"', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -856,6 +907,7 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.12
       it('property attributes on empty property elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
