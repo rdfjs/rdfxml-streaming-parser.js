@@ -5,8 +5,6 @@ import {Transform, TransformCallback} from "stream";
 export class RdfXmlParser extends Transform {
 
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-  public static readonly RDF_ABOUT = RdfXmlParser.RDF + 'about';
-  public static readonly RDF_RESOURCE = RdfXmlParser.RDF + 'resource';
 
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
