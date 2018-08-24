@@ -5,8 +5,6 @@ import {Transform, TransformCallback} from "stream";
 export class RdfXmlParser extends Transform {
 
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-  public static readonly RDF_RDF = RdfXmlParser.RDF + 'RDF';
-  public static readonly RDF_DESCRIPTION = RdfXmlParser.RDF + 'Description';
   public static readonly RDF_ABOUT = RdfXmlParser.RDF + 'about';
   public static readonly RDF_RESOURCE = RdfXmlParser.RDF + 'resource';
 
@@ -56,36 +54,41 @@ export class RdfXmlParser extends Transform {
     this.saxStream.on('error', (error) => this.emit('error', error));
 
     this.saxStream.on('opentag', (tag: QualifiedTag) => {
-      const expandedIri = RdfXmlParser.expandPrefixedTerm(tag.name, tag.ns);
-      if (expandedIri === RdfXmlParser.RDF_RDF) {
-        // Ignore further processing with root <rdf:RDF> tag.
-        return;
-      }
+      if (tag.uri === RdfXmlParser.RDF) {
+        switch (tag.local) {
+        case 'RDF':
+          // Ignore further processing with root <rdf:RDF> tag.
+          break;
+        case 'Description':
+          // rdf:Description defines a term
+          let subjectIri: string = null;
+          const predicates: RDF.Term[] = [];
+          const objects: RDF.Term[] = [];
 
-      if (expandedIri === RdfXmlParser.RDF_DESCRIPTION) {
-        let subjectIri: string = null;
-        const predicates: RDF.Term[] = [];
-        const objects: RDF.Term[] = [];
+          // Collect all attributes as triples
+          for (const attributeKey in tag.attributes) {
+            const attributeValue: QualifiedAttribute = tag.attributes[attributeKey];
+            if (attributeValue.uri === RdfXmlParser.RDF) {
+              switch (attributeValue.local) {
+              case 'about':
+                subjectIri = attributeValue.value;
+                continue;
+              }
+            }
 
-        // Collect all attributes as triples
-        for (const attributeKey in tag.attributes) {
-          const expandedAttributeIri = RdfXmlParser.expandPrefixedTerm(attributeKey, tag.ns);
-          const attributeValue: QualifiedAttribute = tag.attributes[attributeKey];
-          if (expandedAttributeIri === RdfXmlParser.RDF_ABOUT) {
-            subjectIri = RdfXmlParser.expandPrefixedTerm(attributeValue.value, tag.ns);
-          } else {
-            predicates.push(this.dataFactory.namedNode(expandedAttributeIri));
+            predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
             objects.push(this.dataFactory.literal(attributeValue.value));
           }
-        }
 
-        // Emit all collected triples
-        let subject: RDF.Term;
-        if (predicates.length) {
-          subject = this.dataFactory.namedNode(subjectIri);
-        }
-        for (let i = 0; i < predicates.length; i++) {
-          this.push(this.dataFactory.triple(subject, predicates[i], objects[i]));
+          // Emit all collected triples
+          let subject: RDF.Term;
+          if (predicates.length) {
+            subject = this.dataFactory.namedNode(subjectIri);
+          }
+          for (let i = 0; i < predicates.length; i++) {
+            this.push(this.dataFactory.triple(subject, predicates[i], objects[i]));
+          }
+          break;
         }
       }
     });
