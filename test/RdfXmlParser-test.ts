@@ -311,6 +311,34 @@ abc`)).rejects.toBeTruthy();
               '"RDF 1.1 XML Syntax"'),
           ]);
       });
+
+      it('multiple abbreviated rdf:Descriptions', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor>
+      <rdf:Description>
+        <ex:homePage>
+          <rdf:Description rdf:about="http://purl.org/net/dajobe/">
+          </rdf:Description>
+        </ex:homePage>
+        <ex:fullName>Dave Beckett</ex:fullName>
+      </rdf:Description>
+    </ex:editor>
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"'),
+          ]);
+      });
     });
   });
 });
