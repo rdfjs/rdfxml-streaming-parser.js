@@ -78,6 +78,27 @@ abc`)).rejects.toBeTruthy();
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />`))
           .toEqual([]);
       });
+
+      it('an empty rdf:Description', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqual([]);
+      });
+
+      it('a shortcutted empty rdf:Description', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
+</rdf:RDF>`))
+          .toEqual([]);
+      });
     });
   });
 });
