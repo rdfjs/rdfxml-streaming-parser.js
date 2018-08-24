@@ -1,4 +1,5 @@
 import "jest-rdf";
+import * as RDF from "rdf-js";
 import {SAXStream} from "sax";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 const streamifyString = require('streamify-string');
@@ -137,6 +138,19 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      it('an rdf:Description without rdf:about and with an attribute', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description dc:title="RDF1.1 XML Syntax">
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqualRdfQuadArray([
+            quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
+          ]);
+      });
+
       it('an rdf:Description with multiple attributes', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -153,6 +167,17 @@ abc`)).rejects.toBeTruthy();
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
               'http://purl.org/dc/elements/1.1/title2', '"RDF1.1 XML Syntax bis"'),
           ]);
+      });
+
+      it('an rdf:Description without rdf:about with multiple attributes and have the same blank node', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description dc:title1="RDF1.1 XML Syntax" dc:title2="RDF1.1 XML Syntax bis">
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array[0].subject).toBe(array[1].subject);
       });
 
       it('an rdf:Description with an empty property element', async () => {
@@ -188,6 +213,6 @@ abc`)).rejects.toBeTruthy();
   });
 });
 
-function parse(parser: RdfXmlParser, input: string): Promise<string> {
+function parse(parser: RdfXmlParser, input: string): Promise<RDF.Quad[]> {
   return arrayifyStream(streamifyString(input).pipe(parser));
 }
