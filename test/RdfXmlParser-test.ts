@@ -209,6 +209,30 @@ abc`)).rejects.toBeTruthy();
               'http://example.org/stuff/1.0/editor', 'http://purl.org/net/dajobe/'),
           ]);
       });
+
+      it('nested property tags', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description>
+        <ex:homePage>
+          <rdf:Description>
+          </rdf:Description>
+        </ex:homePage>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[0].object).toBe(array[1].subject);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('_:b', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_:b', 'http://example.org/stuff/1.0/homePage', '_:b'),
+          ]);
+      });
     });
   });
 });

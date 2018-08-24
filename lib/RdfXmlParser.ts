@@ -87,11 +87,6 @@ export class RdfXmlParser extends Transform {
             objects.push(this.dataFactory.literal(attributeValue.value));
           }
 
-          // This subject won't be used anywhere, avoid further computation
-          if (!parentTag.predicate && !predicates.length) {
-            return;
-          }
-
           // Force the creation of a subject if it doesn't exist yet
           if (!activeTag.subject) {
             activeTag.subject = this.dataFactory.blankNode();
