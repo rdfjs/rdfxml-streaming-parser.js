@@ -526,6 +526,36 @@ abc`)).rejects.toBeTruthy();
               '"The Tree"@en'),
           ]);
       });
+
+      it('rdf:datatype on property elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/item01">
+    <ex:size rdf:datatype="http://www.w3.org/2001/XMLSchema#int">123</ex:size>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/size',
+              '"123"^^http://www.w3.org/2001/XMLSchema#int'),
+          ]);
+      });
+
+      it('rdf:datatype on property elements and ignore any higher-level xml:lang', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/item01" xml:lang="en-us">
+    <ex:size rdf:datatype="http://www.w3.org/2001/XMLSchema#int">123</ex:size>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/size',
+              '"123"^^http://www.w3.org/2001/XMLSchema#int'),
+          ]);
+      });
     });
   });
 });

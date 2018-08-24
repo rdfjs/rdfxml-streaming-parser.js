@@ -126,6 +126,9 @@ export class RdfXmlParser extends Transform {
           case 'resource':
             this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
                 this.dataFactory.namedNode(propertyAttributeValue.value)));
+          case 'datatype':
+            activeTag.datatype = this.dataFactory.namedNode(propertyAttributeValue.value);
+            break;
           }
         } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
           activeTag.language = propertyAttributeValue.value === '' ? null : propertyAttributeValue.value.toLowerCase();
@@ -146,7 +149,7 @@ export class RdfXmlParser extends Transform {
       const poppedTag: IActiveTag = this.activeTagStack.pop();
       if (poppedTag && !poppedTag.hadChildren && poppedTag.text) {
         this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
-          this.dataFactory.literal(poppedTag.text, poppedTag.language)));
+          this.dataFactory.literal(poppedTag.text, poppedTag.datatype || poppedTag.language)));
       }
     });
   }
@@ -163,4 +166,5 @@ export interface IActiveTag {
   hadChildren?: boolean;
   text?: string;
   language?: string;
+  datatype?: RDF.NamedNode;
 }
