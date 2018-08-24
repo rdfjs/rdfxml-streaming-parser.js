@@ -136,6 +136,24 @@ abc`)).rejects.toBeTruthy();
               'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
           ]);
       });
+
+      it('an rdf:Description with multiple attributes', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar"
+             dc:title1="RDF1.1 XML Syntax"
+             dc:title2="RDF1.1 XML Syntax bis">
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              'http://purl.org/dc/elements/1.1/title1', '"RDF1.1 XML Syntax"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              'http://purl.org/dc/elements/1.1/title2', '"RDF1.1 XML Syntax bis"'),
+          ]);
+      });
     });
   });
 });
