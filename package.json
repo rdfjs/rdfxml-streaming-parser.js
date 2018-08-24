@@ -1,0 +1,74 @@
+{
+  "name": "rdfxml-streaming-parser",
+  "version": "1.0.0",
+  "description": "Streaming RDF/XML parser",
+  "keywords": [
+    "rdf/xml",
+    "streaming",
+    "parser",
+    "xml",
+    "rdfjs",
+    "rdf",
+    "linked data"
+  ],
+  "main": "index.js",
+  "typings": "index",
+  "repository": "git@github.com:rubensworks/rdfxml-streaming-parser.js.git",
+  "author": "Ruben Taelman <rubensworks@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/rubensworks/rdfxml-streaming-parser.js/issues"
+  },
+  "homepage": "https://github.com/rubensworks/rdfxml-streaming-parser.js#readme",
+  "license": "MIT",
+  "files": [
+    "lib/**/*.d.ts",
+    "lib/**/*.js",
+    "index.d.ts",
+    "index.js"
+  ],
+  "pre-commit": [
+    "build",
+    "lint",
+    "test"
+  ],
+  "devDependencies": {
+    "@types/jest": "^23.3.0",
+    "@types/minimist": "^1.2.0",
+    "@types/rdf-js": "^1.0.1",
+    "arrayify-stream": "^1.0.0",
+    "coveralls": "^3.0.0",
+    "jest": "^23.4.1",
+    "jest-rdf": "^1.1.0",
+    "pre-commit": "^1.2.2",
+    "streamify-string": "^1.0.1",
+    "ts-jest": "^23.0.1",
+    "tslint": "^5.8.0",
+    "tslint-eslint-rules": "^5.3.1",
+    "typescript": "^3.0.1"
+  },
+  "jest": {
+    "setupTestFrameworkScriptFile": "jest-rdf",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "transformIgnorePatterns": [
+      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$"
+    ],
+    "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.ts$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "collectCoverage": true,
+    "testEnvironment": "node"
+  },
+  "scripts": {
+    "test": "jest ${1}",
+    "test-watch": "jest ${1} --watch",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "lint": "tslint index.ts lib/**/*.ts test/**/*.ts --exclude '**/*.d.ts'",
+    "build": "tsc",
+    "validate": "npm ls",
+    "prepare": "npm run build"
+  }
+}
