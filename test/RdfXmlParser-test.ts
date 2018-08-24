@@ -330,6 +330,67 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
+        expect(array[0].object).toBe(array[1].subject);
+        expect(array[0].object).toBe(array[2].subject);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"'),
+          ]);
+      });
+
+      it('empty property elements with rdf:resource', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:homePage rdf:resource="http://purl.org/net/dajobe/" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/homePage',
+              'http://purl.org/net/dajobe/'),
+          ]);
+      });
+
+      it('empty property elements with rdf:resource and auxiliary tags', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:homePage rdf:resource="http://purl.org/net/dajobe/" abc="unknown" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/homePage',
+              'http://purl.org/net/dajobe/'),
+          ]);
+      });
+
+      it('empty property elements with rdf:resource mixed with other tags', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor>
+      <rdf:Description>
+        <ex:homePage rdf:resource="http://purl.org/net/dajobe/"/>
+        <ex:fullName>Dave Beckett</ex:fullName>
+      </rdf:Description>
+    </ex:editor>
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[0].object).toBe(array[1].subject);
+        expect(array[0].object).toBe(array[2].subject);
         return expect(array)
           .toEqualRdfQuadArray([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),

@@ -110,9 +110,19 @@ export class RdfXmlParser extends Transform {
         }
       }
 
-      // Interpret tags at this point as predicates
+      // Interpret tags at this point as properties
       activeTag.subject = parentTag.subject; // Inherit parent subject
       activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
+      for (const propertyAttributeKey in tag.attributes) {
+        const propertyAttributeValue: QualifiedAttribute = tag.attributes[propertyAttributeKey];
+        if (propertyAttributeValue.uri === RdfXmlParser.RDF) {
+          switch (propertyAttributeValue.local) {
+          case 'resource':
+            this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
+                this.dataFactory.namedNode(propertyAttributeValue.value)));
+          }
+        }
+      }
     });
 
     this.saxStream.on('text', (text: string) => {
