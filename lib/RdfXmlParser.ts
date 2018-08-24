@@ -1,5 +1,5 @@
 import * as RDF from "rdf-js";
-import {createStream, QualifiedTag, SAXStream} from "sax";
+import {createStream, QualifiedAttribute, QualifiedTag, SAXStream} from "sax";
 import {Transform, TransformCallback} from "stream";
 
 export class RdfXmlParser extends Transform {
@@ -60,6 +60,33 @@ export class RdfXmlParser extends Transform {
       if (expandedIri === RdfXmlParser.RDF_RDF) {
         // Ignore further processing with root <rdf:RDF> tag.
         return;
+      }
+
+      if (expandedIri === RdfXmlParser.RDF_DESCRIPTION) {
+        let subjectIri: string = null;
+        const predicates: RDF.Term[] = [];
+        const objects: RDF.Term[] = [];
+
+        // Collect all attributes as triples
+        for (const attributeKey in tag.attributes) {
+          const expandedAttributeIri = RdfXmlParser.expandPrefixedTerm(attributeKey, tag.ns);
+          const attributeValue: QualifiedAttribute = tag.attributes[attributeKey];
+          if (expandedAttributeIri === RdfXmlParser.RDF_ABOUT) {
+            subjectIri = RdfXmlParser.expandPrefixedTerm(attributeValue.value, tag.ns);
+          } else {
+            predicates.push(this.dataFactory.namedNode(expandedAttributeIri));
+            objects.push(this.dataFactory.literal(attributeValue.value));
+          }
+        }
+
+        // Emit all collected triples
+        let subject: RDF.Term;
+        if (predicates.length) {
+          subject = this.dataFactory.namedNode(subjectIri);
+        }
+        for (let i = 0; i < predicates.length; i++) {
+          this.push(this.dataFactory.triple(subject, predicates[i], objects[i]));
+        }
       }
     });
 

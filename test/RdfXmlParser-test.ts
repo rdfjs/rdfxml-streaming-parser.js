@@ -1,8 +1,9 @@
+import "jest-rdf";
 import {SAXStream} from "sax";
-import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 const streamifyString = require('streamify-string');
 const arrayifyStream = require('arrayify-stream');
+const quad = require('rdf-quad');
 
 describe('RdfXmlParser', () => {
   it('should be constructable without args', () => {
@@ -84,13 +85,34 @@ abc`)).rejects.toBeTruthy();
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description>
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqual([]);
+      });
+
+      it('a self-closing empty rdf:Description', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description />
+</rdf:RDF>`))
+          .toEqual([]);
+      });
+
+      it('an rdf:Description without attributes', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
   </rdf:Description>
 </rdf:RDF>`))
           .toEqual([]);
       });
 
-      it('a shortcutted empty rdf:Description', async () => {
+      it('a self-closing rdf:Description without attributes', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -98,6 +120,21 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
 </rdf:RDF>`))
           .toEqual([]);
+      });
+
+      it('an rdf:Description with an attribute', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar"
+             dc:title="RDF1.1 XML Syntax">
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
+          ]);
       });
     });
   });

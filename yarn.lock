@@ -2535,7 +2535,14 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-rdf-string@^1.1.1:
+rdf-quad@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/rdf-quad/-/rdf-quad-1.2.2.tgz#ff39071d4aa04d9a718a21d6c47338feee3c8a40"
+  dependencies:
+    "@rdfjs/data-model" "^1.1.0"
+    rdf-string "1.2.0"
+
+rdf-string@1.2.0, rdf-string@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/rdf-string/-/rdf-string-1.2.0.tgz#25cd45ab168c8ed1cde62eb64ac3c2291fc551c0"
   dependencies:
