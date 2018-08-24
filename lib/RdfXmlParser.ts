@@ -59,6 +59,10 @@ export class RdfXmlParser extends Transform {
       // Get parent tag
       const parentTag: IActiveTag = this.activeTagStack.length
         ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+      if (parentTag) {
+        parentTag.hadChildren = true;
+      }
+
       const activeTag: IActiveTag = {};
       this.activeTagStack.push(activeTag);
 
@@ -111,8 +115,21 @@ export class RdfXmlParser extends Transform {
       activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
     });
 
+    this.saxStream.on('text', (text: string) => {
+      const activeTag: IActiveTag = this.activeTagStack.length
+        ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+
+      if (activeTag && activeTag.predicate) {
+        activeTag.text = text;
+      }
+    });
+
     this.saxStream.on('closetag', (tagName: string) => {
-      this.activeTagStack.pop();
+      const poppedTag: IActiveTag = this.activeTagStack.pop();
+      if (poppedTag && !poppedTag.hadChildren && poppedTag.text) {
+        this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
+          this.dataFactory.literal(poppedTag.text)));
+      }
     });
   }
 }
@@ -125,4 +142,6 @@ export interface IRdfXmlParserArgs {
 export interface IActiveTag {
   subject?: RDF.Term;
   predicate?: RDF.Term;
+  hadChildren?: boolean;
+  text?: string;
 }
