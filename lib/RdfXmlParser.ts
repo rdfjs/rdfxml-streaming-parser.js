@@ -85,9 +85,17 @@ export class RdfXmlParser extends Transform {
             if (attributeValue.uri === RdfXmlParser.RDF) {
               switch (attributeValue.local) {
               case 'about':
+                if (activeTag.subject) {
+                  this.emit('error', new Error(
+                    `Found both rdf:about (${attributeValue.value}) and rdf:nodeID (${activeTag.subject.value}).`));
+                }
                 activeTag.subject = this.dataFactory.namedNode(attributeValue.value);
                 continue;
               case 'nodeID':
+                if (activeTag.subject) {
+                  this.emit('error', new Error(
+                    `Found both rdf:about (${activeTag.subject.value}) and rdf:nodeID (${attributeValue.value}).`));
+                }
                 activeTag.subject = this.dataFactory.blankNode(attributeValue.value);
                 continue;
               }

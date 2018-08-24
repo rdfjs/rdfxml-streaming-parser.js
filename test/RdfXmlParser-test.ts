@@ -75,6 +75,24 @@ describe('RdfXmlParser', () => {
 abc`)).rejects.toBeTruthy();
     });
 
+    it('should error on node elements with both rdf:about and rdf:nodeID', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:nodeID="abc" />
+</rdf:RDF>`)).rejects.toBeTruthy();
+    });
+
+    it('should error on node elements with both rdf:nodeID and rdf:about', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:nodeID="abc" rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
+</rdf:RDF>`)).rejects.toBeTruthy();
+    });
+
     describe('should parse', () => {
       it('an empty document', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
