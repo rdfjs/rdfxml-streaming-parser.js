@@ -154,6 +154,36 @@ abc`)).rejects.toBeTruthy();
               'http://purl.org/dc/elements/1.1/title2', '"RDF1.1 XML Syntax bis"'),
           ]);
       });
+
+      it('an rdf:Description with an empty property element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqualRdfQuadArray([]);
+      });
+
+      it('an rdf:Description with a valid property element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor>
+      <rdf:Description rdf:about="http://purl.org/net/dajobe/" />
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              'http://example.org/stuff/1.0/editor', 'http://purl.org/net/dajobe/'),
+          ]);
+      });
     });
   });
 });

@@ -12,6 +12,8 @@ export class RdfXmlParser extends Transform {
   private readonly baseIRI: string;
   private readonly saxStream: SAXStream;
 
+  private readonly activeTagStack: IActiveTag[] = [];
+
   constructor(args?: IRdfXmlParserArgs) {
     super({ objectMode: true });
 
@@ -54,14 +56,19 @@ export class RdfXmlParser extends Transform {
     this.saxStream.on('error', (error) => this.emit('error', error));
 
     this.saxStream.on('opentag', (tag: QualifiedTag) => {
+      // Get parent tag
+      const parentTag: IActiveTag = this.activeTagStack.length
+        ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+      const activeTag: IActiveTag = {};
+      this.activeTagStack.push(activeTag);
+
       if (tag.uri === RdfXmlParser.RDF) {
         switch (tag.local) {
         case 'RDF':
           // Ignore further processing with root <rdf:RDF> tag.
-          break;
+          return;
         case 'Description':
           // rdf:Description defines a term
-          let subjectIri: string = null;
           const predicates: RDF.Term[] = [];
           const objects: RDF.Term[] = [];
 
@@ -71,7 +78,7 @@ export class RdfXmlParser extends Transform {
             if (attributeValue.uri === RdfXmlParser.RDF) {
               switch (attributeValue.local) {
               case 'about':
-                subjectIri = attributeValue.value;
+                activeTag.subject = this.dataFactory.namedNode(attributeValue.value);
                 continue;
               }
             }
@@ -80,21 +87,37 @@ export class RdfXmlParser extends Transform {
             objects.push(this.dataFactory.literal(attributeValue.value));
           }
 
+          // This subject won't be used anywhere, avoid further computation
+          if (!parentTag.predicate && !predicates.length) {
+            return;
+          }
+
+          // Force the creation of a subject if it doesn't exist yet
+          if (!activeTag.subject) {
+            activeTag.subject = this.dataFactory.blankNode();
+          }
+
+          // If the parent tag defined a predicate, add the current tag as property value
+          if (parentTag.predicate) {
+            this.push(this.dataFactory.triple(parentTag.subject, parentTag.predicate, activeTag.subject));
+          }
+
           // Emit all collected triples
-          let subject: RDF.Term;
-          if (predicates.length) {
-            subject = this.dataFactory.namedNode(subjectIri);
-          }
           for (let i = 0; i < predicates.length; i++) {
-            this.push(this.dataFactory.triple(subject, predicates[i], objects[i]));
+            this.push(this.dataFactory.triple(activeTag.subject, predicates[i], objects[i]));
           }
-          break;
+
+          return;
         }
       }
+
+      // Interpret tags at this point as predicates
+      activeTag.subject = parentTag.subject; // Inherit parent subject
+      activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
     });
 
     this.saxStream.on('closetag', (tagName: string) => {
-      // TODO
+      this.activeTagStack.pop();
     });
   }
 }
@@ -102,4 +125,9 @@ export class RdfXmlParser extends Transform {
 export interface IRdfXmlParserArgs {
   dataFactory?: RDF.DataFactory;
   baseIRI?: string;
+}
+
+export interface IActiveTag {
+  subject?: RDF.Term;
+  predicate?: RDF.Term;
 }
