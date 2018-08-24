@@ -28,6 +28,21 @@ export class RdfXmlParser extends Transform {
     this.attachSaxListeners();
   }
 
+  public static expandPrefixedTerm(term: string, ns: { [key: string]: string }): string {
+    const colonIndex: number = term.indexOf(':');
+    if (colonIndex >= 0) {
+      const prefix: string = term.substr(0, colonIndex);
+      const suffix: string = term.substr(colonIndex + 1);
+      const expandedPrefix: string = ns[prefix];
+      if (!expandedPrefix) {
+        return term;
+      }
+      return expandedPrefix + suffix;
+    } else {
+      return term;
+    }
+  }
+
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {
     this.saxStream.write(chunk, encoding, callback);
   }

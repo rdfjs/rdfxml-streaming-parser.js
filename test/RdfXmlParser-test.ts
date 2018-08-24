@@ -41,4 +41,18 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).baseIRI).toEqual('myBaseIRI');
     expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
   });
+
+  describe('#expandPrefixedTerm', () => {
+    it('should not expand strings without colon', () => {
+      expect(RdfXmlParser.expandPrefixedTerm('abc', {})).toEqual('abc');
+    });
+
+    it('should not expand strings with unknown colon', () => {
+      expect(RdfXmlParser.expandPrefixedTerm('a:abc', {})).toEqual('a:abc');
+    });
+
+    it('should expand strings with known colon', () => {
+      expect(RdfXmlParser.expandPrefixedTerm('a:abc', { a: 'xyz#' })).toEqual('xyz#abc');
+    });
+  });
 });
