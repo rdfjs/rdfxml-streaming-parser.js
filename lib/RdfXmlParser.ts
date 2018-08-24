@@ -131,11 +131,16 @@ export class RdfXmlParser extends Transform {
       activeTag.subject = parentTag.subject; // Inherit parent subject
       activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
       let parseTypeResource: boolean = false;
+      let attributedProperty: boolean = false;
       for (const propertyAttributeKey in tag.attributes) {
         const propertyAttributeValue: QualifiedAttribute = tag.attributes[propertyAttributeKey];
         if (propertyAttributeValue.uri === RdfXmlParser.RDF) {
           switch (propertyAttributeValue.local) {
           case 'resource':
+            if (attributedProperty) {
+              this.emit('error', new Error(
+                `Found both non-rdf:* property attributes and rdf:resource (${propertyAttributeValue.value}).`));
+            }
             if (activeTag.nodeId) {
               this.emit('error', new Error(`Found both rdf:resource (${propertyAttributeValue.value
               }) and rdf:nodeID (${activeTag.nodeId.value}).`));
@@ -148,16 +153,24 @@ export class RdfXmlParser extends Transform {
             activeTag.hadChildren = true;
             this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
                 this.dataFactory.namedNode(propertyAttributeValue.value)));
-            break;
+            continue;
           case 'datatype':
+            if (attributedProperty) {
+              this.emit('error', new Error(
+                `Found both non-rdf:* property attributes and rdf:datatype (${propertyAttributeValue.value}).`));
+            }
             if (parseTypeResource) {
               this.emit('error',
                 new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:datatype (${
                   propertyAttributeValue.value})`));
             }
             activeTag.datatype = this.dataFactory.namedNode(propertyAttributeValue.value);
-            break;
+            continue;
           case 'nodeID':
+            if (attributedProperty) {
+              this.emit('error', new Error(
+                `Found both non-rdf:* property attributes and rdf:nodeID (${propertyAttributeValue.value}).`));
+            }
             if (activeTag.hadChildren) {
               this.emit('error', new Error(
                 `Found both rdf:resource and rdf:nodeID (${propertyAttributeValue.value}).`));
@@ -168,10 +181,14 @@ export class RdfXmlParser extends Transform {
                   propertyAttributeValue.value})`));
             }
             activeTag.nodeId = this.dataFactory.blankNode(propertyAttributeValue.value);
-            break;
+            continue;
           case 'parseType':
             if (propertyAttributeValue.value === 'Resource') {
               // Turn this property element into a node element
+              if (attributedProperty) {
+                this.emit('error',
+                  new Error(`rdf:parseType="Resource" is not allowed when non-rdf:* property attributes are present`));
+              }
               if (activeTag.hadChildren) {
                 this.emit('error',
                   new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:resource`));
@@ -191,12 +208,29 @@ export class RdfXmlParser extends Transform {
               this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate, nestedBNode));
               activeTag.subject = nestedBNode;
               activeTag.predicate = null;
-              break;
             }
+            continue;
           }
         } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
           activeTag.language = propertyAttributeValue.value === '' ? null : propertyAttributeValue.value.toLowerCase();
+          continue;
         }
+
+        // Interpret attributes at this point as properties via implicit blank nodes on the property
+        if (parseTypeResource || activeTag.hadChildren || activeTag.datatype || activeTag.nodeId) {
+          this.emit('error', new Error(
+            `Found illegal rdf:* properties on property element with attribute: ${propertyAttributeValue.value}`));
+        }
+        activeTag.hadChildren = true;
+        attributedProperty = true;
+        const implicitPropertyBNode: RDF.BlankNode = this.dataFactory.blankNode();
+        this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate, implicitPropertyBNode));
+        this.push(this.dataFactory.triple(
+          implicitPropertyBNode,
+          this.dataFactory.namedNode(propertyAttributeValue.uri + propertyAttributeValue.local),
+          this.dataFactory.literal(propertyAttributeValue.value,
+            activeTag.datatype || activeTag.language),
+        ));
       }
     });
 
