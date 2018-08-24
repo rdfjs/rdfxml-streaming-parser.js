@@ -927,6 +927,45 @@ abc`)).rejects.toBeTruthy();
             quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
           ]);
       });
+
+      // 2.13
+      it('non-compacted typed node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/thing">
+    <rdf:type rdf:resource="http://example.org/stuff/1.0/Document"/>
+    <dc:title>A marvelous thing</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/thing', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/stuff/1.0/Document'),
+            quad('http://example.org/thing', 'http://purl.org/dc/elements/1.1/title',
+              '"A marvelous thing"'),
+          ]);
+      });
+
+      // 2.13
+      it('typed node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <ex:Document rdf:about="http://example.org/thing">
+    <dc:title>A marvelous thing</dc:title>
+  </ex:Document>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/thing', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/stuff/1.0/Document'),
+            quad('http://example.org/thing', 'http://purl.org/dc/elements/1.1/title',
+              '"A marvelous thing"'),
+          ]);
+      });
     });
   });
 });
