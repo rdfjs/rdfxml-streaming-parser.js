@@ -135,6 +135,10 @@ export class RdfXmlParser extends Transform {
         if (propertyAttributeValue.uri === RdfXmlParser.RDF) {
           switch (propertyAttributeValue.local) {
           case 'resource':
+            if (activeTag.nodeId) {
+              this.emit('error', new Error(`Found both rdf:resource (${propertyAttributeValue.value
+              }) and rdf:nodeID (${activeTag.nodeId.value}).`));
+            }
             activeTag.hadChildren = true;
             this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
                 this.dataFactory.namedNode(propertyAttributeValue.value)));
@@ -143,6 +147,10 @@ export class RdfXmlParser extends Transform {
             activeTag.datatype = this.dataFactory.namedNode(propertyAttributeValue.value);
             break;
           case 'nodeID':
+            if (activeTag.hadChildren) {
+              this.emit('error', new Error(
+                `Found both rdf:resource and rdf:nodeID (${propertyAttributeValue.value}).`));
+            }
             activeTag.nodeId = this.dataFactory.blankNode(propertyAttributeValue.value);
             break;
           }

@@ -81,7 +81,8 @@ abc`)).rejects.toBeTruthy();
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:nodeID="abc" />
-</rdf:RDF>`)).rejects.toBeTruthy();
+</rdf:RDF>`)).rejects.toEqual(
+  new Error('Found both rdf:about (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
     });
 
     it('should error on node elements with both rdf:nodeID and rdf:about', async () => {
@@ -90,7 +91,31 @@ abc`)).rejects.toBeTruthy();
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:nodeID="abc" rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
-</rdf:RDF>`)).rejects.toBeTruthy();
+</rdf:RDF>`)).rejects.toEqual(
+  new Error('Found both rdf:about (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
+    });
+
+    it('should error on property elements with both rdf:nodeID and rdf:about', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:nodeID="abc" rdf:resource="http://www.w3.org/TR/rdf-syntax-grammar" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+  new Error('Found both rdf:resource (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
+    });
+
+    it('should error on property elements with both rdf:nodeID and rdf:about', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:resource="http://www.w3.org/TR/rdf-syntax-grammar" rdf:nodeID="abc" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Found both rdf:resource and rdf:nodeID (abc).'));
     });
 
     describe('should parse', () => {
