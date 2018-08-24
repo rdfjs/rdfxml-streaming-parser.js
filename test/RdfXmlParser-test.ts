@@ -1,5 +1,8 @@
 import {SAXStream} from "sax";
+import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
+const streamifyString = require('streamify-string');
+const arrayifyStream = require('arrayify-stream');
 
 describe('RdfXmlParser', () => {
   it('should be constructable without args', () => {
@@ -55,4 +58,30 @@ describe('RdfXmlParser', () => {
       expect(RdfXmlParser.expandPrefixedTerm('a:abc', { a: 'xyz#' })).toEqual('xyz#abc');
     });
   });
+
+  describe('a default instance', () => {
+
+    let parser;
+
+    beforeEach(() => {
+      parser = new RdfXmlParser();
+    });
+
+    it('should delegate xml errors', () => {
+      return expect(parse(parser, `
+abc`)).rejects.toBeTruthy();
+    });
+
+    describe('should parse', () => {
+      it('an empty document', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />`))
+          .toEqual([]);
+      });
+    });
+  });
 });
+
+function parse(parser: RdfXmlParser, input: string): Promise<string> {
+  return arrayifyStream(streamifyString(input).pipe(parser));
+}

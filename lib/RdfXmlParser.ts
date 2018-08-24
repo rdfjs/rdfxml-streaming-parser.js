@@ -44,7 +44,8 @@ export class RdfXmlParser extends Transform {
   }
 
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {
-    this.saxStream.write(chunk, encoding, callback);
+    this.saxStream.write(chunk, encoding);
+    callback();
   }
 
   protected attachSaxListeners() {
@@ -52,7 +53,11 @@ export class RdfXmlParser extends Transform {
     this.saxStream.on('error', (error) => this.emit('error', error));
 
     this.saxStream.on('opentag', (tag: QualifiedTag) => {
-      // TODO
+      const expandedIri = RdfXmlParser.expandPrefixedTerm(tag.name, tag.ns);
+      if (expandedIri === RdfXmlParser.RDF_RDF) {
+        // Ignore further processing with root <rdf:RDF> tag.
+        return;
+      }
     });
 
     this.saxStream.on('closetag', (tagName: string) => {
