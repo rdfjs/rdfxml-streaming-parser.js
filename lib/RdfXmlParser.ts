@@ -5,6 +5,7 @@ import {Transform, TransformCallback} from "stream";
 export class RdfXmlParser extends Transform {
 
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+  public static readonly XML = 'http://www.w3.org/XML/1998/namespace';
 
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
@@ -62,6 +63,10 @@ export class RdfXmlParser extends Transform {
       }
 
       const activeTag: IActiveTag = {};
+      if (parentTag) {
+        // Inherit language scope from parent
+        activeTag.language = parentTag.language;
+      }
       this.activeTagStack.push(activeTag);
 
       if (tag.uri === RdfXmlParser.RDF) {
@@ -83,6 +88,9 @@ export class RdfXmlParser extends Transform {
                 activeTag.subject = this.dataFactory.namedNode(attributeValue.value);
                 continue;
               }
+            } else if (attributeValue.uri === RdfXmlParser.XML && attributeValue.local === 'lang') {
+              activeTag.language = attributeValue.value === '' ? null : attributeValue.value.toLowerCase();
+              continue;
             }
 
             predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
@@ -119,6 +127,8 @@ export class RdfXmlParser extends Transform {
             this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
                 this.dataFactory.namedNode(propertyAttributeValue.value)));
           }
+        } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
+          activeTag.language = propertyAttributeValue.value === '' ? null : propertyAttributeValue.value.toLowerCase();
         }
       }
     });
@@ -136,7 +146,7 @@ export class RdfXmlParser extends Transform {
       const poppedTag: IActiveTag = this.activeTagStack.pop();
       if (poppedTag && !poppedTag.hadChildren && poppedTag.text) {
         this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
-          this.dataFactory.literal(poppedTag.text)));
+          this.dataFactory.literal(poppedTag.text, poppedTag.language)));
       }
     });
   }
@@ -152,4 +162,5 @@ export interface IActiveTag {
   predicate?: RDF.Term;
   hadChildren?: boolean;
   text?: string;
+  language?: string;
 }

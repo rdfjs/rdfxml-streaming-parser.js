@@ -400,6 +400,132 @@ abc`)).rejects.toBeTruthy();
               '"RDF 1.1 XML Syntax"'),
           ]);
       });
+
+      it('xml:lang on node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us">
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"@en-us'),
+          ]);
+      });
+
+      it('xml:lang on nested node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us">
+    <ex:editor>
+      <rdf:Description>
+        <dc:title>RDF 1.1 XML Syntax</dc:title>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us'),
+          ]);
+      });
+
+      it('xml:lang resets on node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us">
+    <ex:editor>
+      <rdf:Description xml:lang="">
+        <dc:title>RDF 1.1 XML Syntax</dc:title>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
+          ]);
+      });
+
+      it('xml:lang on property elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <dc:title xml:lang="en-us">RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"@en-us'),
+          ]);
+      });
+
+      it('xml:lang resets on property elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us">
+    <ex:editor>
+      <rdf:Description>
+        <dc:title xml:lang="">RDF 1.1 XML Syntax</dc:title>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
+          ]);
+      });
+
+      it('mixed xml:lang usage', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+    <dc:title xml:lang="en">RDF 1.1 XML Syntax</dc:title>
+    <dc:title xml:lang="en-US">RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://example.org/buecher/baum" xml:lang="de">
+    <dc:title>Der Baum</dc:title>
+    <dc:description>Das Buch ist außergewöhnlich</dc:description>
+    <dc:title xml:lang="en">The Tree</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"@en'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF 1.1 XML Syntax"@en-us'),
+            quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/title',
+              '"Der Baum"@de'),
+            quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/description',
+              '"Das Buch ist au\u00DFergew\u00F6hnlich"@de'),
+            quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/title',
+              '"The Tree"@en'),
+          ]);
+      });
     });
   });
 });
