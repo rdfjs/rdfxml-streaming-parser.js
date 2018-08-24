@@ -1,3 +1,4 @@
+import * as DataFactory from "@rdfjs/data-model";
 import "jest-rdf";
 import * as RDF from "rdf-js";
 import {SAXStream} from "sax";
@@ -180,7 +181,7 @@ abc`)).rejects.toBeTruthy();
         return expect(array[0].subject).toBe(array[1].subject);
       });
 
-      it('an rdf:Description with an empty property element', async () => {
+      it('an rdf:Description with an empty property element should define a blank node', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -189,7 +190,10 @@ abc`)).rejects.toBeTruthy();
     <ex:editor />
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([]);
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              'http://example.org/stuff/1.0/editor', '_:b'),
+          ]);
       });
 
       it('an rdf:Description with a valid property element', async () => {
@@ -554,6 +558,62 @@ abc`)).rejects.toBeTruthy();
           .toEqualRdfQuadArray([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/size',
               '"123"^^http://www.w3.org/2001/XMLSchema#int'),
+          ]);
+      });
+
+      it('rdf:nodeID on property elements as blank nodes', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:nodeID="abc"/>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[0].object).toEqual(DataFactory.blankNode('abc'));
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor',
+              '_:b'),
+          ]);
+      });
+
+      it('rdf:nodeID on node elements as blank nodes', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:nodeID="abc" ex:fullName="Dave Beckett" />
+</rdf:RDF>`);
+        expect(array[0].subject).toEqual(DataFactory.blankNode('abc'));
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+          ]);
+      });
+
+      it('rdf:nodeID on mixed node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar"
+             dc:title="RDF/XML Syntax Specification (Revised)">
+    <ex:editor rdf:nodeID="abc"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:nodeID="abc" ex:fullName="Dave Beckett">
+    <ex:homePage rdf:resource="http://purl.org/net/dajobe/"/>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[1].object).toEqual(DataFactory.blankNode('abc'));
+        expect(array[2].subject).toEqual(DataFactory.blankNode('abc'));
+        expect(array[3].subject).toEqual(DataFactory.blankNode('abc'));
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF/XML Syntax Specification (Revised)"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('_b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
           ]);
       });
     });

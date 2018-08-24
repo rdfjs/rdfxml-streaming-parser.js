@@ -75,7 +75,7 @@ export class RdfXmlParser extends Transform {
           // Ignore further processing with root <rdf:RDF> tag.
           return;
         case 'Description':
-          // rdf:Description defines a term
+          // rdf:Description defines a node element
           const predicates: RDF.Term[] = [];
           const objects: RDF.Term[] = [];
 
@@ -86,6 +86,9 @@ export class RdfXmlParser extends Transform {
               switch (attributeValue.local) {
               case 'about':
                 activeTag.subject = this.dataFactory.namedNode(attributeValue.value);
+                continue;
+              case 'nodeID':
+                activeTag.subject = this.dataFactory.blankNode(attributeValue.value);
                 continue;
               }
             } else if (attributeValue.uri === RdfXmlParser.XML && attributeValue.local === 'lang') {
@@ -116,7 +119,7 @@ export class RdfXmlParser extends Transform {
         }
       }
 
-      // Interpret tags at this point as properties
+      // Interpret tags at this point as property elements
       activeTag.subject = parentTag.subject; // Inherit parent subject
       activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
       for (const propertyAttributeKey in tag.attributes) {
@@ -124,10 +127,15 @@ export class RdfXmlParser extends Transform {
         if (propertyAttributeValue.uri === RdfXmlParser.RDF) {
           switch (propertyAttributeValue.local) {
           case 'resource':
+            activeTag.hadChildren = true;
             this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
                 this.dataFactory.namedNode(propertyAttributeValue.value)));
+            break;
           case 'datatype':
             activeTag.datatype = this.dataFactory.namedNode(propertyAttributeValue.value);
+            break;
+          case 'nodeID':
+            activeTag.nodeId = this.dataFactory.blankNode(propertyAttributeValue.value);
             break;
           }
         } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
@@ -147,9 +155,16 @@ export class RdfXmlParser extends Transform {
 
     this.saxStream.on('closetag', (tagName: string) => {
       const poppedTag: IActiveTag = this.activeTagStack.pop();
-      if (poppedTag && !poppedTag.hadChildren && poppedTag.text) {
-        this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
-          this.dataFactory.literal(poppedTag.text, poppedTag.datatype || poppedTag.language)));
+      if (poppedTag && !poppedTag.hadChildren && poppedTag.predicate) {
+        if (poppedTag.text) {
+          // Property element contains text
+          this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
+            this.dataFactory.literal(poppedTag.text, poppedTag.datatype || poppedTag.language)));
+        } else {
+          // Property element is a blank node
+          this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
+            poppedTag.nodeId || this.dataFactory.blankNode()));
+        }
       }
     });
   }
@@ -167,4 +182,5 @@ export interface IActiveTag {
   text?: string;
   language?: string;
   datatype?: RDF.NamedNode;
+  nodeId?: RDF.BlankNode;
 }
