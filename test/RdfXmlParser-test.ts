@@ -118,6 +118,81 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(new Error('Found both rdf:resource and rdf:nodeID (abc).'));
     });
 
+    it('should error on property elements with both rdf:parseType="Resource" and rdf:resource', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:parseType="Resource" rdf:resource="http://www.w3.org/TR/rdf-syntax-grammar" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+        new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:resource ' +
+          '(http://www.w3.org/TR/rdf-syntax-grammar)'));
+    });
+
+    it('should error on property elements with both rdf:parseType="Resource" and rdf:datatype', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:parseType="Resource" rdf:datatype="http://www.w3.org/TR/rdf-syntax-grammar" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+        new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:datatype ' +
+          '(http://www.w3.org/TR/rdf-syntax-grammar)'));
+    });
+
+    it('should error on property elements with both rdf:parseType="Resource" and rdf:nodeID', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:parseType="Resource" rdf:nodeID="abc" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType="Resource" is not allowed on property elements ' +
+        'with rdf:nodeID (abc)'));
+    });
+
+    it('should error on property elements with both rdf:resource and rdf:parseType="Resource"', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:resource="http://www.w3.org/TR/rdf-syntax-grammar" rdf:parseType="Resource" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+        new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:resource'));
+    });
+
+    it('should error on property elements with both rdf:datatype and rdf:parseType="Resource"', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:datatype="http://www.w3.org/TR/rdf-syntax-grammar" rdf:parseType="Resource" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+        new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:datatype ' +
+          '(http://www.w3.org/TR/rdf-syntax-grammar)'));
+    });
+
+    it('should error on property elements with both rdf:nodeID and rdf:parseType="Resource"', async () => {
+      return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:nodeID="abc" rdf:parseType="Resource" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType="Resource" is not allowed on property elements ' +
+        'with rdf:nodeID (abc)'));
+    });
+
     describe('should parse', () => {
       it('an empty document', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
@@ -657,6 +732,49 @@ abc`)).rejects.toBeTruthy();
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
             quad('_b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+          ]);
+      });
+
+      it('nested property elements with rdf:parseType="resource"', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar"
+                   dc:title="RDF/XML Syntax Specification (Revised)">
+    <ex:editor rdf:parseType="Resource">
+      <ex:fullName>Dave Beckett</ex:fullName>
+      <ex:homePage rdf:resource="http://purl.org/net/dajobe/"/>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[1].object).toBe(array[2].subject);
+        expect(array[1].object).toBe(array[3].subject);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF/XML Syntax Specification (Revised)"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+            quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('_b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+          ]);
+      });
+
+      it('and ignore rdf:parseType="resource"', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar"
+                   dc:title="RDF/XML Syntax Specification (Revised)">
+    <ex:editor rdf:parseType="resource" rdf:nodeID="abc" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+              '"RDF/XML Syntax Specification (Revised)"'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
           ]);
       });
     });

@@ -130,6 +130,7 @@ export class RdfXmlParser extends Transform {
       // Interpret tags at this point as property elements
       activeTag.subject = parentTag.subject; // Inherit parent subject
       activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
+      let parseTypeResource: boolean = false;
       for (const propertyAttributeKey in tag.attributes) {
         const propertyAttributeValue: QualifiedAttribute = tag.attributes[propertyAttributeKey];
         if (propertyAttributeValue.uri === RdfXmlParser.RDF) {
@@ -139,11 +140,21 @@ export class RdfXmlParser extends Transform {
               this.emit('error', new Error(`Found both rdf:resource (${propertyAttributeValue.value
               }) and rdf:nodeID (${activeTag.nodeId.value}).`));
             }
+            if (parseTypeResource) {
+              this.emit('error',
+                new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:resource (${
+                  propertyAttributeValue.value})`));
+            }
             activeTag.hadChildren = true;
             this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
                 this.dataFactory.namedNode(propertyAttributeValue.value)));
             break;
           case 'datatype':
+            if (parseTypeResource) {
+              this.emit('error',
+                new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:datatype (${
+                  propertyAttributeValue.value})`));
+            }
             activeTag.datatype = this.dataFactory.namedNode(propertyAttributeValue.value);
             break;
           case 'nodeID':
@@ -151,8 +162,37 @@ export class RdfXmlParser extends Transform {
               this.emit('error', new Error(
                 `Found both rdf:resource and rdf:nodeID (${propertyAttributeValue.value}).`));
             }
+            if (parseTypeResource) {
+              this.emit('error',
+                new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:nodeID (${
+                  propertyAttributeValue.value})`));
+            }
             activeTag.nodeId = this.dataFactory.blankNode(propertyAttributeValue.value);
             break;
+          case 'parseType':
+            if (propertyAttributeValue.value === 'Resource') {
+              // Turn this property element into a node element
+              if (activeTag.hadChildren) {
+                this.emit('error',
+                  new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:resource`));
+              }
+              if (activeTag.datatype) {
+                this.emit('error',
+                  new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:datatype (${
+                  activeTag.datatype.value})`));
+              }
+              if (activeTag.nodeId) {
+                this.emit('error',
+                  new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:nodeID (${
+                    activeTag.nodeId.value})`));
+              }
+              parseTypeResource = true;
+              const nestedBNode: RDF.BlankNode = this.dataFactory.blankNode();
+              this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate, nestedBNode));
+              activeTag.subject = nestedBNode;
+              activeTag.predicate = null;
+              break;
+            }
           }
         } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
           activeTag.language = propertyAttributeValue.value === '' ? null : propertyAttributeValue.value.toLowerCase();
