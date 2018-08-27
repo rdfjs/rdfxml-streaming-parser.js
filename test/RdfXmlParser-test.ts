@@ -11,6 +11,10 @@ const quad = require('rdf-quad');
 /* (Some) tests are tagged with the section they apply to  */
 
 describe('RdfXmlParser', () => {
+  it('MIME_TYPE to be \'application/rdf+xml\'', () => {
+    expect(RdfXmlParser.MIME_TYPE).toEqual('application/rdf+xml');
+  });
+
   it('should be constructable without args', () => {
     const instance = new RdfXmlParser();
     expect(instance).toBeInstanceOf(RdfXmlParser);

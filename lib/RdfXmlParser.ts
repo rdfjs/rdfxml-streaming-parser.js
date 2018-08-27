@@ -4,6 +4,8 @@ import {Transform, TransformCallback} from "stream";
 
 export class RdfXmlParser extends Transform {
 
+  public static readonly MIME_TYPE = 'application/rdf+xml';
+
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
   public static readonly XML = 'http://www.w3.org/XML/1998/namespace';
 
