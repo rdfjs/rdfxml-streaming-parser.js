@@ -1160,6 +1160,70 @@ abc`)).rejects.toBeTruthy();
               'http://example.org/pear'),
           ]);
       });
+
+      // 2.16
+      it('properties in a rdf:parseType="Collection" to a linked list', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/basket">
+    <ex:hasFruit rdf:parseType="Collection">
+      <rdf:Description rdf:about="http://example.org/banana"/>
+      <rdf:Description rdf:about="http://example.org/apple"/>
+      <rdf:Description rdf:about="http://example.org/pear"/>
+    </ex:hasFruit>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[0].object).toBe(array[1].subject);
+        expect(array[0].object).toBe(array[2].subject);
+        expect(array[2].object).toBe(array[3].subject);
+        expect(array[2].object).toBe(array[4].subject);
+        expect(array[4].object).toBe(array[5].subject);
+        expect(array[4].object).toBe(array[6].subject);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit', '_:b'),
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/banana'),
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b'),
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/apple'),
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b'),
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/pear'),
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+          ]);
+      });
+
+      // 2.16
+      it('zero properties in an empty tag in a rdf:parseType="Collection" to a linked list', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/basket">
+    <ex:hasFruit rdf:parseType="Collection"></ex:hasFruit>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+          ]);
+      });
+
+      // 2.16
+      it('zero properties in a self-closing tag in a rdf:parseType="Collection" to a linked list', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/basket">
+    <ex:hasFruit rdf:parseType="Collection" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+          ]);
+      });
     });
   });
 });
