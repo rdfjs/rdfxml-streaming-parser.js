@@ -1358,6 +1358,31 @@ abc`)).rejects.toBeTruthy();
             quad('_:b', 'http://example.org/stuff/1.0/prop2', '"abc"'),
           ]);
       });
+
+      // 2.8
+      it('property element values with rdf:parseType="Literal" to literals', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/item01">
+    <ex:prop rdf:parseType="Literal">
+      <a:Box required="true" xmlns:a="http://example.org/a#">
+        <a:widget size="10" />
+        <a:grommit id="23">abc</a:grommit>
+      </a:Box>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
+              '"\n      <a:Box required="true" xmlns:a="http://example.org/a#">\n' +
+              '        <a:widget size="10" />\n' +
+              '        <a:grommit id="23">abc</a:grommit>\n' +
+              '      </a:Box>\n' +
+              '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
+          ]);
+      });
     });
   });
 });

@@ -74,6 +74,29 @@ export class RdfXmlParser extends Transform {
         currentParseType = parentTag.childrenParseType;
       }
 
+      // Check if this tag needs to be converted to a string
+      if (parentTag && parentTag.childrenStringTags) {
+        // Convert this tag to a string
+        const tagName: string = `${tag.prefix}:${tag.local}`;
+        let attributes: string = '';
+        for (const attributeKey in tag.attributes) {
+          attributes += ` ${attributeKey}="${tag.attributes[attributeKey].value}"`;
+        }
+        const tagContents: string = `${tagName}${attributes}`;
+        const tagString: string = tag.isSelfClosing ? `<${tagContents} />` : `<${tagContents}>`;
+        parentTag.childrenStringTags.push(tagString);
+
+        // Inherit the array, so that deeper tags are appended to this same array
+        const stringActiveTag: IActiveTag = { childrenStringTags: parentTag.childrenStringTags };
+        if (!tag.isSelfClosing) {
+          stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
+        }
+        this.activeTagStack.push(stringActiveTag);
+
+        // Halt any further processing
+        return;
+      }
+
       const activeTag: IActiveTag = {};
       if (parentTag) {
         // Inherit language scope and baseIRI from parent
@@ -287,6 +310,10 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
                 activeTag.hadChildren = true;
                 activeTag.childrenCollectionSubject = activeTag.subject;
                 activeTag.childrenCollectionPredicate = activeTag.predicate;
+              } else if (propertyAttributeValue.value === 'Literal') {
+                // Interpret children as being part of a literal string
+                activeTag.childrenTagsToString = true;
+                activeTag.childrenStringTags = [];
               }
               continue;
             case 'ID':
@@ -332,13 +359,30 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
       const activeTag: IActiveTag = this.activeTagStack.length
         ? this.activeTagStack[this.activeTagStack.length - 1] : null;
 
-      if (activeTag && activeTag.predicate) {
-        activeTag.text = text;
+      if (activeTag) {
+        if (activeTag.childrenStringTags) {
+          activeTag.childrenStringTags.push(text);
+        } else if (activeTag.predicate) {
+          activeTag.text = text;
+        }
       }
     });
 
     this.saxStream.on('closetag', (tagName: string) => {
       const poppedTag: IActiveTag = this.activeTagStack.pop();
+
+      // If we were converting a tag to a string, and the tag was not self-closing, close it here.
+      if (poppedTag.childrenStringEmitClosingTag) {
+        poppedTag.childrenStringTags.push(poppedTag.childrenStringEmitClosingTag);
+      }
+
+      // Set the literal value if we were collecting XML tags to string
+      if (poppedTag.childrenTagsToString) {
+        poppedTag.datatype = this.dataFactory.namedNode(RdfXmlParser.RDF + 'XMLLiteral');
+        poppedTag.text = poppedTag.childrenStringTags.join('');
+        poppedTag.hadChildren = false; // Force a literal triple to be emitted hereafter
+      }
+
       if (!poppedTag.hadChildren && poppedTag.predicate) {
         if (poppedTag.text) {
           // Property element contains text
@@ -376,6 +420,9 @@ export interface IActiveTag {
   baseIRI?: string;
   listItemCounter?: number;
   reifiedStatementId?: RDF.Term;
+  childrenTagsToString?: boolean;
+  childrenStringTags?: string[];
+  childrenStringEmitClosingTag?: string;
   // for creating rdf:Lists
   childrenCollectionSubject?: RDF.Term;
   childrenCollectionPredicate?: RDF.Term;
