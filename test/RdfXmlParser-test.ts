@@ -1137,6 +1137,29 @@ abc`)).rejects.toBeTruthy();
               'http://example.org/here/fruit/apple'),
           ]);
       });
+
+      // 2.15
+      it('rdf:li properties', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Seq rdf:about="http://example.org/favourite-fruit">
+    <rdf:li rdf:resource="http://example.org/banana"/>
+    <rdf:li rdf:resource="http://example.org/apple"/>
+    <rdf:li rdf:resource="http://example.org/pear"/>
+  </rdf:Seq>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq'),
+            quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_1',
+              'http://example.org/banana'),
+            quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_2',
+              'http://example.org/apple'),
+            quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_3',
+              'http://example.org/pear'),
+          ]);
+      });
     });
   });
 });

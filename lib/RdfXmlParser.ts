@@ -154,7 +154,15 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
       } else { // currentParseType === ParseType.PROPERTY
         activeTag.childrenParseType = ParseType.RESOURCE;
         activeTag.subject = parentTag.subject; // Inherit parent subject
-        activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
+        if (tag.uri === RdfXmlParser.RDF && tag.local === 'li') {
+          // Convert rdf:li to rdf:_x
+          if (!parentTag.listItemCounter) {
+            parentTag.listItemCounter = 1;
+          }
+          activeTag.predicate = this.dataFactory.namedNode(tag.uri + '_' + parentTag.listItemCounter++);
+        } else {
+          activeTag.predicate = this.dataFactory.namedNode(tag.uri + tag.local);
+        }
         let parseTypeResource: boolean = false;
         let attributedProperty: boolean = false;
         for (const propertyAttributeKey in tag.attributes) {
@@ -306,6 +314,7 @@ export interface IActiveTag {
   nodeId?: RDF.BlankNode;
   childrenParseType?: ParseType;
   baseIRI?: string;
+  listItemCounter?: number;
 }
 
 export enum ParseType {
