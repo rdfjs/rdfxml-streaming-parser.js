@@ -64,6 +64,28 @@ describe('RdfXmlParser', () => {
 abc`)).rejects.toBeTruthy();
     });
 
+    describe('#valueToUri', () => {
+      it('create a named node from an absolute URI when no baseIRI is given', () => {
+        expect(parser.valueToUri('http://example.org/', {}))
+          .toEqual(DataFactory.namedNode('http://example.org/'));
+      });
+
+      it('create a named node from an absolute URI when a baseIRI is given', () => {
+        expect(parser.valueToUri('http://example.org/', { baseIRI: 'http://base.org/' }))
+          .toEqual(DataFactory.namedNode('http://example.org/'));
+      });
+
+      it('create a named node from a relative URI when no baseIRI is given', () => {
+        expect(parser.valueToUri('abc', {}))
+          .toEqual(DataFactory.namedNode('abc'));
+      });
+
+      it('create a named node from a relative URI when a baseIRI is given', () => {
+        expect(parser.valueToUri('abc', { baseIRI: 'http://base.org/' }))
+          .toEqual(DataFactory.namedNode('http://base.org/abc'));
+      });
+    });
+
     describe('should error', () => {
       // 2.10
       it('on node elements with both rdf:about and rdf:nodeID', async () => {

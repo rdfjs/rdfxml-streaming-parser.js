@@ -31,7 +31,8 @@ export class RdfXmlParser extends Transform {
   }
 
   public valueToUri(value: string, activeTag: IActiveTag): RDF.NamedNode {
-    return this.dataFactory.namedNode(value.indexOf('://') > 0 ? value : activeTag.baseIRI + value);
+    return this.dataFactory.namedNode(!activeTag.baseIRI || value.indexOf('://') > 0
+      ? value : activeTag.baseIRI + value);
   }
 
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {
