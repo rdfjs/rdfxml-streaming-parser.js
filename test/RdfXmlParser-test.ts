@@ -317,6 +317,19 @@ abc`)).rejects.toBeTruthy();
       });
 
       // 2.6
+      it('and ignore unknown xml:* attributes', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:bla="bla">
+  <rdf:Description>
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqual([]);
+      });
+
+      // 2.6
       it('an empty rdf:Description', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -966,6 +979,76 @@ abc`)).rejects.toBeTruthy();
               '"A marvelous thing"'),
           ]);
       });
+
+      // 2.14
+      it('shortened URIs in rdf:about, rdf:resource and rdf:datatype with xml:base on the root tag', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://example.org/here/">
+  <rdf:Description rdf:about="snack">
+    <ex:prop rdf:resource="fruit/apple"/>
+    <ex:prop2 rdf:resource="http://example.org/"/>
+    <ex:editor rdf:datatype="abc">def</ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop',
+              'http://example.org/here/fruit/apple'),
+            quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2',
+              'http://example.org/'),
+            quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/editor',
+              '"def"^^http://example.org/here/abc'),
+          ]);
+      });
+
+      // 2.14
+      it('shortened URIs in rdf:about, rdf:resource and rdf:datatype with xml:base in the parser options', async () => {
+        const parserThis = new RdfXmlParser({ baseIRI: 'http://example.org/here/' });
+        const array = await parse(parserThis, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="snack">
+    <ex:prop rdf:resource="fruit/apple"/>
+    <ex:prop2 rdf:resource="http://example.org/"/>
+    <ex:editor rdf:datatype="abc">def</ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop',
+              'http://example.org/here/fruit/apple'),
+            quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2',
+              'http://example.org/'),
+            quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/editor',
+              '"def"^^http://example.org/here/abc'),
+          ]);
+      });
+
+      // 2.14
+      it('shortened URIs in rdf:about, rdf:resource and rdf:datatype with xml:base on the root and inner tag',
+        async () => {
+          const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://example.org/here/">
+  <rdf:Description rdf:about="snack" xml:base="http://example.org/here2/">
+    <ex:prop rdf:resource="fruit/apple"/>
+    <ex:prop2 rdf:resource="http://example.org/"/>
+    <ex:editor rdf:datatype="abc">def</ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+          return expect(array)
+            .toEqualRdfQuadArray([
+              quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop',
+                'http://example.org/here2/fruit/apple'),
+              quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2',
+                'http://example.org/'),
+              quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/editor',
+                '"def"^^http://example.org/here2/abc'),
+            ]);
+        });
     });
   });
 });

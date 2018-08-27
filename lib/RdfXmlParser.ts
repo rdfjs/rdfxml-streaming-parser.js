@@ -45,6 +45,10 @@ export class RdfXmlParser extends Transform {
     }
   }
 
+  public valueToUri(value: string, activeTag: IActiveTag): RDF.NamedNode {
+    return this.dataFactory.namedNode(value.indexOf('://') > 0 ? value : activeTag.baseIRI + value);
+  }
+
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {
     this.saxStream.write(chunk, encoding);
     callback();
@@ -66,8 +70,11 @@ export class RdfXmlParser extends Transform {
 
       const activeTag: IActiveTag = {};
       if (parentTag) {
-        // Inherit language scope from parent
+        // Inherit language scope and baseIRI from parent
         activeTag.language = parentTag.language;
+        activeTag.baseIRI = parentTag.baseIRI;
+      } else {
+        activeTag.baseIRI = this.baseIRI;
       }
       this.activeTagStack.push(activeTag);
       if (currentParseType === ParseType.RESOURCE) {
@@ -80,8 +87,6 @@ export class RdfXmlParser extends Transform {
           case 'RDF':
             // Tags under <rdf:RDF> must always be resources
             activeTag.childrenParseType = ParseType.RESOURCE;
-            // Ignore further processing with root <rdf:RDF> tag.
-            return;
           case 'Description':
             typedNode = false;
           }
@@ -93,14 +98,14 @@ export class RdfXmlParser extends Transform {
         // Collect all attributes as triples
         for (const attributeKey in tag.attributes) {
           const attributeValue: QualifiedAttribute = tag.attributes[attributeKey];
-          if (attributeValue.uri === RdfXmlParser.RDF) {
+          if (parentTag && attributeValue.uri === RdfXmlParser.RDF) {
             switch (attributeValue.local) {
             case 'about':
               if (activeTag.subject) {
                 this.emit('error', new Error(
                   `Found both rdf:about (${attributeValue.value}) and rdf:nodeID (${activeTag.subject.value}).`));
               }
-              activeTag.subject = this.dataFactory.namedNode(attributeValue.value);
+              activeTag.subject = this.valueToUri(attributeValue.value, activeTag);
               continue;
             case 'nodeID':
               if (activeTag.subject) {
@@ -110,35 +115,43 @@ export class RdfXmlParser extends Transform {
               activeTag.subject = this.dataFactory.blankNode(attributeValue.value);
               continue;
             }
-          } else if (attributeValue.uri === RdfXmlParser.XML && attributeValue.local === 'lang') {
-            activeTag.language = attributeValue.value === '' ? null : attributeValue.value.toLowerCase();
-            continue;
+          } else if (attributeValue.uri === RdfXmlParser.XML) {
+            if (attributeValue.local === 'lang') {
+              activeTag.language = attributeValue.value === '' ? null : attributeValue.value.toLowerCase();
+              continue;
+            } else if (attributeValue.local === 'base') {
+              activeTag.baseIRI = attributeValue.value;
+              continue;
+            }
           }
 
           predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
           objects.push(this.dataFactory.literal(attributeValue.value));
         }
 
-        // Force the creation of a subject if it doesn't exist yet
-        if (!activeTag.subject) {
-          activeTag.subject = this.dataFactory.blankNode();
-        }
+        // Skip further handling on root tag
+        if (parentTag) {
+          // Force the creation of a subject if it doesn't exist yet
+          if (!activeTag.subject) {
+            activeTag.subject = this.dataFactory.blankNode();
+          }
 
-        // Emit the type if we're at a typed node
-        if (typedNode) {
-          const type: RDF.NamedNode = this.dataFactory.namedNode(tag.uri + tag.local);
-          this.push(this.dataFactory.triple(activeTag.subject,
-            this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'), type));
-        }
+          // Emit the type if we're at a typed node
+          if (typedNode) {
+            const type: RDF.NamedNode = this.dataFactory.namedNode(tag.uri + tag.local);
+            this.push(this.dataFactory.triple(activeTag.subject,
+              this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'), type));
+          }
 
-        // If the parent tag defined a predicate, add the current tag as property value
-        if (parentTag.predicate) {
-          this.push(this.dataFactory.triple(parentTag.subject, parentTag.predicate, activeTag.subject));
-        }
+          // If the parent tag defined a predicate, add the current tag as property value
+          if (parentTag.predicate) {
+            this.push(this.dataFactory.triple(parentTag.subject, parentTag.predicate, activeTag.subject));
+          }
 
-        // Emit all collected triples
-        for (let i = 0; i < predicates.length; i++) {
-          this.push(this.dataFactory.triple(activeTag.subject, predicates[i], objects[i]));
+          // Emit all collected triples
+          for (let i = 0; i < predicates.length; i++) {
+            this.push(this.dataFactory.triple(activeTag.subject, predicates[i], objects[i]));
+          }
         }
       } else { // currentParseType === ParseType.PROPERTY
         activeTag.childrenParseType = ParseType.RESOURCE;
@@ -166,7 +179,7 @@ export class RdfXmlParser extends Transform {
               }
               activeTag.hadChildren = true;
               this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
-                this.dataFactory.namedNode(propertyAttributeValue.value)));
+                this.valueToUri(propertyAttributeValue.value, activeTag)));
               continue;
             case 'datatype':
               if (attributedProperty) {
@@ -178,7 +191,7 @@ export class RdfXmlParser extends Transform {
                   new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:datatype (${
                     propertyAttributeValue.value})`));
               }
-              activeTag.datatype = this.dataFactory.namedNode(propertyAttributeValue.value);
+              activeTag.datatype = this.valueToUri(propertyAttributeValue.value, activeTag);
               continue;
             case 'nodeID':
               if (attributedProperty) {
@@ -294,6 +307,7 @@ export interface IActiveTag {
   datatype?: RDF.NamedNode;
   nodeId?: RDF.BlankNode;
   childrenParseType?: ParseType;
+  baseIRI?: string;
 }
 
 export enum ParseType {
