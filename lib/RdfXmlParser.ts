@@ -12,6 +12,7 @@ export class RdfXmlParser extends Transform {
   private readonly saxStream: SAXStream;
 
   private readonly activeTagStack: IActiveTag[] = [];
+  private readonly nodeIds: {[id: string]: boolean} = {};
 
   constructor(args?: IRdfXmlParserArgs) {
     super({ objectMode: true });
@@ -88,15 +89,26 @@ export class RdfXmlParser extends Transform {
             switch (attributeValue.local) {
             case 'about':
               if (activeTag.subject) {
-                this.emit('error', new Error(
-                  `Found both rdf:about (${attributeValue.value}) and rdf:nodeID (${activeTag.subject.value}).`));
+                this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
               }
               activeTag.subject = this.valueToUri(attributeValue.value, activeTag);
               continue;
+            case 'ID':
+              if (activeTag.subject) {
+                this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
+              }
+              if (this.nodeIds[attributeValue.value]) {
+                this.emit('error', new Error(`Found multiple occurences of rdf:ID='${attributeValue.value}'.`));
+              }
+              this.nodeIds[attributeValue.value] = true;
+              activeTag.subject = this.valueToUri('#' + attributeValue.value, activeTag);
+              continue;
             case 'nodeID':
               if (activeTag.subject) {
-                this.emit('error', new Error(
-                  `Found both rdf:about (${activeTag.subject.value}) and rdf:nodeID (${attributeValue.value}).`));
+                this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
               }
               activeTag.subject = this.dataFactory.blankNode(attributeValue.value);
               continue;

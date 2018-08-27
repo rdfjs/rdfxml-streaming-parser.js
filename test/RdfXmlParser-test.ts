@@ -95,7 +95,8 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:nodeID="abc" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found both rdf:about (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
+          new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while abc and http://www.w3.org/TR/rdf-syntax-grammar where found.'));
       });
 
       // 2.10
@@ -106,7 +107,69 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:nodeID="abc" rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found both rdf:about (http://www.w3.org/TR/rdf-syntax-grammar) and rdf:nodeID (abc).'));
+          new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while http://www.w3.org/TR/rdf-syntax-grammar and abc where found.'));
+      });
+
+      // 2.10
+      it('on node elements with both rdf:ID and rdf:nodeID', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:ID="xyz" rdf:nodeID="abc" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while abc and #xyz where found.'));
+      });
+
+      // 2.10
+      it('on node elements with both rdf:nodeID and rdf:ID', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:nodeID="abc" rdf:ID="xyz" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while xyz and abc where found.'));
+      });
+
+      // 2.10
+      it('on node elements with both rdf:about and rdf:ID', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:ID="abc" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while abc and http://www.w3.org/TR/rdf-syntax-grammar where found.'));
+      });
+
+      // 2.10
+      it('on node elements with both rdf:ID and rdf:about', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:ID="abc" rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while http://www.w3.org/TR/rdf-syntax-grammar and #abc where found.'));
+      });
+
+      // 2.10
+      it('when multiple equal rdf:ID occurences are found', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:ID="abc" />
+  <rdf:Description rdf:ID="def" />
+  <rdf:Description rdf:ID="abc" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Found multiple occurences of rdf:ID=\'abc\'.'));
       });
 
       // 2.10
@@ -1057,6 +1120,23 @@ abc`)).rejects.toBeTruthy();
                 '"def"^^http://example.org/here2/abc'),
             ]);
         });
+
+      // 2.14
+      it('rdf:ID with xml:base on the root tag', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://example.org/here/">
+  <rdf:Description rdf:ID="snack">
+    <ex:prop rdf:resource="fruit/apple"/>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/here/#snack', 'http://example.org/stuff/1.0/prop',
+              'http://example.org/here/fruit/apple'),
+          ]);
+      });
     });
   });
 });
