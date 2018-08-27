@@ -160,7 +160,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       // 2.10
-      it('when multiple equal rdf:ID occurences are found', async () => {
+      it('when multiple equal rdf:ID occurrences on node elements are found', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -169,7 +169,34 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:ID="def" />
   <rdf:Description rdf:ID="abc" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurences of rdf:ID=\'abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'abc\'.'));
+      });
+
+      // 2.17
+      it('when multiple equal rdf:ID occurrences on property elements are found', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description>
+    <ex:prop rdf:ID="abc">1</ex:prop>
+    <ex:prop rdf:ID="abc">2</ex:prop>
+  <rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Found multiple occurrences of rdf:ID=\'abc\'.'));
+      });
+
+      // 2.10, 2.17
+      it('when multiple equal rdf:ID occurrences on node and property elements are found', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:ID="abc">
+    <ex:prop rdf:ID="abc">1</ex:prop>
+  <rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Found multiple occurrences of rdf:ID=\'abc\'.'));
       });
 
       // 2.10
@@ -374,6 +401,30 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
     <ex:editor rdf:nodeID="xyy" dc:title="abc" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Found illegal rdf:* properties on property element with attribute: abc'));
+      });
+
+      // 2.12, 2.17
+      it('on property elements and rdf:ID', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor dc:title="abc" rdf:ID="xyy" />
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:ID is not allowed on property elements with rdf:resource'));
+      });
+
+      // 2.12, 2.17
+      it('on property rdf:ID and elements', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <ex:editor rdf:ID="xyy" dc:title="abc" />
   </rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(new Error('Found illegal rdf:* properties on property element with attribute: abc'));
       });
@@ -1222,6 +1273,85 @@ abc`)).rejects.toBeTruthy();
           .toEqualRdfQuadArray([
             quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+          ]);
+      });
+
+      // 2.17
+      it('rdf:ID on a property with a literal to a reified statement', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:ID="triple1">blah</ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject',
+              'http://example.org/'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+              'http://example.org/stuff/1.0/prop'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
+              '"blah"'),
+          ]);
+      });
+
+      // 2.17
+      it('rdf:ID on a property with a nested node to a reified statement', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:ID="triple1">
+      <rdf:Description rdf:about="http://example.org/2" />
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/', 'http://example.org/stuff/1.0/prop', 'http://example.org/2'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject',
+              'http://example.org/'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+              'http://example.org/stuff/1.0/prop'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
+              'http://example.org/2'),
+          ]);
+      });
+
+      // 2.17
+      it('rdf:ID on a property with parseType=\'Resource\' to a reified statement', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:ID="triple1" rdf:parseType='Resource'>
+      <ex:prop2>abc</ex:prop2>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        expect(array[0].object).toBe(array[4].object);
+        expect(array[0].object).toBe(array[5].subject);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '_:b'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject',
+              'http://example.org/'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+              'http://example.org/stuff/1.0/prop'),
+            quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
+              '_:b'),
+            quad('_:b', 'http://example.org/stuff/1.0/prop2', '"abc"'),
           ]);
       });
     });

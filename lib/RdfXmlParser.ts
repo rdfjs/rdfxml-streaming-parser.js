@@ -36,6 +36,23 @@ export class RdfXmlParser extends Transform {
       ? value : activeTag.baseIRI + value);
   }
 
+  public emitTriple(subject: RDF.Term, predicate: RDF.Term, object: RDF.Term, statementId?: RDF.Term) {
+    this.push(this.dataFactory.triple(subject, predicate, object));
+
+    // Reify triple
+    if (statementId) {
+      this.push(this.dataFactory.triple(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'Statement')));
+      this.push(this.dataFactory.triple(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'subject'), subject));
+      this.push(this.dataFactory.triple(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'predicate'), predicate));
+      this.push(this.dataFactory.triple(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'object'), object));
+    }
+  }
+
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {
     this.saxStream.write(chunk, encoding);
     callback();
@@ -100,7 +117,7 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
 while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
               }
               if (this.nodeIds[attributeValue.value]) {
-                this.emit('error', new Error(`Found multiple occurences of rdf:ID='${attributeValue.value}'.`));
+                this.emit('error', new Error(`Found multiple occurrences of rdf:ID='${attributeValue.value}'.`));
               }
               this.nodeIds[attributeValue.value] = true;
               activeTag.subject = this.valueToUri('#' + attributeValue.value, activeTag);
@@ -137,8 +154,8 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
           // Emit the type if we're at a typed node
           if (typedNode) {
             const type: RDF.NamedNode = this.dataFactory.namedNode(tag.uri + tag.local);
-            this.push(this.dataFactory.triple(activeTag.subject,
-              this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'), type));
+            this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
+              type, parentTag.reifiedStatementId);
           }
 
           // If the parent tag defined a predicate, add the current tag as property value
@@ -148,25 +165,25 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
               const linkTerm: RDF.BlankNode = this.dataFactory.blankNode();
 
               // Emit <x> <p> <current-chain> OR <previous-chain> <rdf:rest> <current-chain>
-              this.push(this.dataFactory.triple(parentTag.childrenCollectionSubject,
-                parentTag.childrenCollectionPredicate, linkTerm));
+              this.emitTriple(parentTag.childrenCollectionSubject,
+                parentTag.childrenCollectionPredicate, linkTerm, parentTag.reifiedStatementId);
 
               // Emit <current-chain> <rdf:first> value
-              this.push(this.dataFactory.triple(linkTerm,
-                this.dataFactory.namedNode(RdfXmlParser.RDF + 'first'), activeTag.subject));
+              this.emitTriple(linkTerm, this.dataFactory.namedNode(RdfXmlParser.RDF + 'first'),
+                activeTag.subject, activeTag.reifiedStatementId);
 
               // Store <current-chain> in the parent node
               parentTag.childrenCollectionSubject = linkTerm;
               parentTag.childrenCollectionPredicate = this.dataFactory.namedNode(RdfXmlParser.RDF + 'rest');
             } else {
               // Set-based properties
-              this.push(this.dataFactory.triple(parentTag.subject, parentTag.predicate, activeTag.subject));
+              this.emitTriple(parentTag.subject, parentTag.predicate, activeTag.subject, parentTag.reifiedStatementId);
             }
           }
 
           // Emit all collected triples
           for (let i = 0; i < predicates.length; i++) {
-            this.push(this.dataFactory.triple(activeTag.subject, predicates[i], objects[i]));
+            this.emitTriple(activeTag.subject, predicates[i], objects[i], parentTag.reifiedStatementId);
           }
         }
       } else { // currentParseType === ParseType.PROPERTY
@@ -202,8 +219,8 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
                     propertyAttributeValue.value})`));
               }
               activeTag.hadChildren = true;
-              this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate,
-                this.valueToUri(propertyAttributeValue.value, activeTag)));
+              this.emitTriple(activeTag.subject, activeTag.predicate,
+                this.valueToUri(propertyAttributeValue.value, activeTag), activeTag.reifiedStatementId);
               continue;
             case 'datatype':
               if (attributedProperty) {
@@ -260,7 +277,7 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
 
                 // Turn this property element into a node element
                 const nestedBNode: RDF.BlankNode = this.dataFactory.blankNode();
-                this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate, nestedBNode));
+                this.emitTriple(activeTag.subject, activeTag.predicate, nestedBNode, activeTag.reifiedStatementId);
                 activeTag.subject = nestedBNode;
                 activeTag.predicate = null;
               } else if (propertyAttributeValue.value === 'Collection') {
@@ -270,6 +287,17 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
                 activeTag.childrenCollectionPredicate = activeTag.predicate;
               }
               continue;
+            case 'ID':
+              if (activeTag.hadChildren) {
+                this.emit('error', new Error(`rdf:ID is not allowed on property elements with rdf:resource`));
+              }
+              if (this.nodeIds[propertyAttributeValue.value]) {
+                this.emit('error',
+                  new Error(`Found multiple occurrences of rdf:ID='${propertyAttributeValue.value}'.`));
+              }
+              this.nodeIds[propertyAttributeValue.value] = true;
+              activeTag.reifiedStatementId = this.valueToUri('#' + propertyAttributeValue.value, activeTag);
+              continue;
             }
           } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
             activeTag.language = propertyAttributeValue.value === ''
@@ -278,20 +306,22 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
           }
 
           // Interpret attributes at this point as properties via implicit blank nodes on the property
-          if (parseTypeResource || activeTag.hadChildren || activeTag.datatype || activeTag.nodeId) {
+          if (parseTypeResource || activeTag.hadChildren || activeTag.datatype || activeTag.nodeId
+          || activeTag.reifiedStatementId) {
             this.emit('error', new Error(
               `Found illegal rdf:* properties on property element with attribute: ${propertyAttributeValue.value}`));
           }
           activeTag.hadChildren = true;
           attributedProperty = true;
           const implicitPropertyBNode: RDF.BlankNode = this.dataFactory.blankNode();
-          this.push(this.dataFactory.triple(activeTag.subject, activeTag.predicate, implicitPropertyBNode));
-          this.push(this.dataFactory.triple(
+          this.emitTriple(activeTag.subject, activeTag.predicate, implicitPropertyBNode, activeTag.reifiedStatementId);
+          this.emitTriple(
             implicitPropertyBNode,
             this.dataFactory.namedNode(propertyAttributeValue.uri + propertyAttributeValue.local),
             this.dataFactory.literal(propertyAttributeValue.value,
               activeTag.datatype || activeTag.language),
-          ));
+            activeTag.reifiedStatementId,
+          );
         }
       }
     });
@@ -310,17 +340,18 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
       if (!poppedTag.hadChildren && poppedTag.predicate) {
         if (poppedTag.text) {
           // Property element contains text
-          this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
-            this.dataFactory.literal(poppedTag.text, poppedTag.datatype || poppedTag.language)));
+          this.emitTriple(poppedTag.subject, poppedTag.predicate,
+            this.dataFactory.literal(poppedTag.text, poppedTag.datatype || poppedTag.language),
+            poppedTag.reifiedStatementId);
         } else {
           // Property element is a blank node
-          this.push(this.dataFactory.triple(poppedTag.subject, poppedTag.predicate,
-            poppedTag.nodeId || this.dataFactory.blankNode()));
+          this.emitTriple(poppedTag.subject, poppedTag.predicate,
+            poppedTag.nodeId || this.dataFactory.blankNode(), poppedTag.reifiedStatementId);
         }
       } else if (poppedTag.childrenCollectionSubject) {
         // Terminate the rdf:List
-        this.push(this.dataFactory.triple(poppedTag.childrenCollectionSubject, poppedTag.childrenCollectionPredicate,
-          this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil')));
+        this.emitTriple(poppedTag.childrenCollectionSubject, poppedTag.childrenCollectionPredicate,
+          this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), poppedTag.reifiedStatementId);
       }
     });
   }
@@ -342,6 +373,7 @@ export interface IActiveTag {
   childrenParseType?: ParseType;
   baseIRI?: string;
   listItemCounter?: number;
+  reifiedStatementId?: RDF.Term;
   // for creating rdf:Lists
   childrenCollectionSubject?: RDF.Term;
   childrenCollectionPredicate?: RDF.Term;
