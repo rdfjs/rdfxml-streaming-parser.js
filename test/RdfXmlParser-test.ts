@@ -535,6 +535,23 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      it('DOCTYPE and ENTITY\'s', async () => {
+        return expect(await parse(parser, `<!DOCTYPE rdf:RDF
+[<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <!ENTITY dc "http://purl.org/dc/elements/1.1/">
+ ]>
+<rdf:RDF xmlns:rdf="&rdf;"
+            xmlns:dc="&dc;">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar"
+             dc:title="RDF1.1 XML Syntax">
+  </rdf:Description>
+</rdf:RDF>`))
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
+          ]);
+      });
+
       // 2.5
       it('an rdf:Description without rdf:about and with an attribute', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>

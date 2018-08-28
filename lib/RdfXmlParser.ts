@@ -408,6 +408,14 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
           this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), poppedTag.reifiedStatementId);
       }
     });
+
+    // Fetch local DOCTYPE ENTITY's and make the parser recognise them.
+    this.saxStream.on('doctype', (doctype: string) => {
+      doctype.replace(/<!ENTITY ([^ ]+) "([^"]+)">/g, (match, prefix, uri) => {
+        (<any> this.saxStream)._parser.ENTITIES[prefix] = uri;
+        return '';
+      });
+    });
   }
 }
 
