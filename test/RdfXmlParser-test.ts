@@ -1416,6 +1416,89 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
     });
+
+    describe('streaming-wise', () => {
+      const streamParser = new RdfXmlParser();
+
+      it('should not emit on the empty string', () => {
+        streamParser.write('', 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after the XML start tag', () => {
+        streamParser.write('<?xml version="1.0"?>', 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after the RDF start tag', () => {
+        streamParser.write(`<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">`, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after open an rdf:Description tag', () => {
+        streamParser.write(`<rdf:Description `, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after a property attribute', () => {
+        streamParser.write(`ex:title1="Title1" `, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after an rdf:about attribute', () => {
+        streamParser.write(`rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" `, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after another a property attribute', () => {
+        streamParser.write(`ex:title2="Title2"`, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should emit 2 triples after closing the rdf:Description tag', () => {
+        streamParser.write(`>`, 'utf8', null);
+        expect(streamParser.read(1)).toEqualRdfQuad(quad('http://www.w3.org/TR/rdf-syntax-grammar',
+          'http://example.org/stuff/1.0/title1', '"Title1"'));
+        expect(streamParser.read(1)).toEqualRdfQuad(quad('http://www.w3.org/TR/rdf-syntax-grammar',
+          'http://example.org/stuff/1.0/title2', '"Title2"'));
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after opening a property tag', () => {
+        streamParser.write(`<ex:prop `, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after setting the resource in a property tag', () => {
+        streamParser.write(` rdf:resource="http://example.org/" `, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should emit after closing the property tag', () => {
+        streamParser.write(`/>`, 'utf8', null);
+        expect(streamParser.read(1)).toEqualRdfQuad(quad('http://www.w3.org/TR/rdf-syntax-grammar',
+          'http://example.org/stuff/1.0/prop', 'http://example.org/'));
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after closing the rdf:Description tag', () => {
+        streamParser.write(`</rdf:Description>`, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should not emit after closing the rdf:RDF tag', () => {
+        streamParser.write(`</rdf:RDF>`, 'utf8', null);
+        expect(streamParser.read(1)).toBeFalsy();
+      });
+
+      it('should be closed after finishing the stream', () => {
+        streamParser.end();
+        expect(streamParser.read(1)).toBeFalsy();
+        expect(streamParser.writable).toBeFalsy();
+      });
+    });
   });
 });
 
