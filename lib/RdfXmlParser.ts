@@ -12,6 +12,7 @@ export class RdfXmlParser extends Transform {
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
   private readonly defaultGraph?: RDF.Term;
+  private readonly strict?: boolean;
   private readonly saxStream: SAXStream;
 
   private readonly activeTagStack: IActiveTag[] = [];
@@ -33,10 +34,12 @@ export class RdfXmlParser extends Transform {
       this.defaultGraph = this.dataFactory.defaultGraph();
     }
 
-    this.saxStream = createStream(false, { xmlns: true });
+    this.saxStream = createStream(this.strict, { xmlns: true });
 
     // Workaround for an issue in SAX where non-strict mode either lower- or upper-cases all tags.
-    (<any> this.saxStream)._parser.looseCase = 'toString';
+    if (!this.strict) {
+      (<any> this.saxStream)._parser.looseCase = 'toString';
+    }
 
     this.attachSaxListeners();
   }
@@ -423,6 +426,7 @@ export interface IRdfXmlParserArgs {
   dataFactory?: RDF.DataFactory;
   baseIRI?: string;
   defaultGraph?: RDF.Term;
+  strict?: boolean;
 }
 
 export interface IActiveTag {
