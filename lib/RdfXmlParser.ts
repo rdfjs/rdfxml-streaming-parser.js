@@ -11,6 +11,7 @@ export class RdfXmlParser extends Transform {
 
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
+  private readonly defaultGraph?: RDF.Term;
   private readonly saxStream: SAXStream;
 
   private readonly activeTagStack: IActiveTag[] = [];
@@ -28,6 +29,9 @@ export class RdfXmlParser extends Transform {
     if (!this.baseIRI) {
       this.baseIRI = '';
     }
+    if (!this.defaultGraph) {
+      this.defaultGraph = this.dataFactory.defaultGraph();
+    }
 
     this.saxStream = createStream(true, { xmlns: true });
     this.attachSaxListeners();
@@ -39,19 +43,20 @@ export class RdfXmlParser extends Transform {
   }
 
   public emitTriple(subject: RDF.Term, predicate: RDF.Term, object: RDF.Term, statementId?: RDF.Term) {
-    this.push(this.dataFactory.triple(subject, predicate, object));
+    this.push(this.dataFactory.quad(subject, predicate, object, this.defaultGraph));
 
     // Reify triple
     if (statementId) {
-      this.push(this.dataFactory.triple(statementId,
+      this.push(this.dataFactory.quad(statementId,
         this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'Statement')));
-      this.push(this.dataFactory.triple(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'subject'), subject));
-      this.push(this.dataFactory.triple(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'predicate'), predicate));
-      this.push(this.dataFactory.triple(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'object'), object));
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'Statement'),
+        this.defaultGraph));
+      this.push(this.dataFactory.quad(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'subject'), subject, this.defaultGraph));
+      this.push(this.dataFactory.quad(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'predicate'), predicate, this.defaultGraph));
+      this.push(this.dataFactory.quad(statementId,
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'object'), object, this.defaultGraph));
     }
   }
 
@@ -406,6 +411,7 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
 export interface IRdfXmlParserArgs {
   dataFactory?: RDF.DataFactory;
   baseIRI?: string;
+  defaultGraph?: RDF.Term;
 }
 
 export interface IActiveTag {
