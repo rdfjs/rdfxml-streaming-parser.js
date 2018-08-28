@@ -33,7 +33,11 @@ export class RdfXmlParser extends Transform {
       this.defaultGraph = this.dataFactory.defaultGraph();
     }
 
-    this.saxStream = createStream(true, { xmlns: true });
+    this.saxStream = createStream(false, { xmlns: true });
+
+    // Workaround for an issue in SAX where non-strict mode either lower- or upper-cases all tags.
+    (<any> this.saxStream)._parser.looseCase = 'toString';
+
     this.attachSaxListeners();
   }
 
@@ -115,7 +119,6 @@ export class RdfXmlParser extends Transform {
         activeTag.childrenParseType = ParseType.PROPERTY;
         // Assume that the current node is a _typed_ node (2.13), unless we find an rdf:Description as node name
         let typedNode: boolean = true;
-
         if (tag.uri === RdfXmlParser.RDF) {
           switch (tag.local) {
           case 'RDF':

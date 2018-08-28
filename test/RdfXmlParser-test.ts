@@ -81,6 +81,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should delegate xml errors', () => {
+      (<any> parser).saxStream._parser.strict = true;
       return expect(parse(parser, `
 abc`)).rejects.toBeTruthy();
     });
