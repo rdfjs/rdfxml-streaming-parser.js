@@ -18,7 +18,8 @@
   "include": [
     "index.ts",
     "lib/**/*",
-    "bin/**/*"
+    "bin/**/*",
+    "perf/**/*"
   ],
   "exclude": [
     "**/node_modules",
