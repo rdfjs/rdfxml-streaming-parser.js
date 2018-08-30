@@ -207,7 +207,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:ID="def" />
   <rdf:Description rdf:ID="abc" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurrences of rdf:ID=\'abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'#abc\'.'));
       });
 
       // 2.17
@@ -221,7 +221,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop rdf:ID="abc">2</ex:prop>
   <rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurrences of rdf:ID=\'abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'#abc\'.'));
       });
 
       // 2.10, 2.17
@@ -234,7 +234,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop rdf:ID="abc">1</ex:prop>
   <rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurrences of rdf:ID=\'abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'#abc\'.'));
       });
 
       // 2.10
@@ -1422,6 +1422,23 @@ abc`)).rejects.toBeTruthy();
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#object',
               '_:b'),
             quad('_:b', 'http://example.org/stuff/1.0/prop2', '"abc"'),
+          ]);
+      });
+
+      // 2.17
+      it('Identifical rdf:ID\'s are allowed if they refer to different resources', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/"
+         xml:base="http://example.org/triples">
+  <rdf:Description xml:base="http://example.org/dir/file"
+                rdf:ID="frag" ex:value="v" />
+  <rdf:Description rdf:ID="frag" ex:value="v" />
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/dir/file#frag', 'http://example.org/value', '"v"'),
+            quad('http://example.org/triples#frag', 'http://example.org/value', '"v"'),
           ]);
       });
 

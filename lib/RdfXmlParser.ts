@@ -152,11 +152,8 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
                 this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
 while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
               }
-              if (this.nodeIds[attributeValue.value]) {
-                this.emit('error', new Error(`Found multiple occurrences of rdf:ID='${attributeValue.value}'.`));
-              }
-              this.nodeIds[attributeValue.value] = true;
               activeTag.subject = this.valueToUri('#' + attributeValue.value, activeTag);
+              this.claimNodeId(activeTag.subject);
               continue;
             case 'nodeID':
               if (activeTag.subject) {
@@ -331,12 +328,8 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
               if (activeTag.hadChildren) {
                 this.emit('error', new Error(`rdf:ID is not allowed on property elements with rdf:resource`));
               }
-              if (this.nodeIds[propertyAttributeValue.value]) {
-                this.emit('error',
-                  new Error(`Found multiple occurrences of rdf:ID='${propertyAttributeValue.value}'.`));
-              }
-              this.nodeIds[propertyAttributeValue.value] = true;
               activeTag.reifiedStatementId = this.valueToUri('#' + propertyAttributeValue.value, activeTag);
+              this.claimNodeId(activeTag.reifiedStatementId);
               continue;
             }
           } else if (propertyAttributeValue.uri === RdfXmlParser.XML && propertyAttributeValue.local === 'lang') {
@@ -419,6 +412,20 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
         return '';
       });
     });
+  }
+
+  /**
+   * Register the given term as a node ID.
+   * If one was already registered, this will emit an error.
+   *
+   * This is used to check duplicate occurrences of rdf:ID in scope of the baseIRI.
+   * @param {Term} term An RDF term.
+   */
+  protected claimNodeId(term: RDF.Term) {
+    if (this.nodeIds[term.value]) {
+      this.emit('error', new Error(`Found multiple occurrences of rdf:ID='${term.value}'.`));
+    }
+    this.nodeIds[term.value] = true;
   }
 }
 
