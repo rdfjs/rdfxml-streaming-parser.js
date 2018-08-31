@@ -231,31 +231,36 @@ export class RdfXmlParser extends Transform {
         const objects: RDF.Term[] = [];
 
         // Collect all attributes as triples
+        // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
+        let activeSubjectValue: string = null;
+        let claimSubjectNodeId: boolean = false;
+        let subjectValueBlank: boolean = false;
         for (const attributeKey in tag.attributes) {
           const attributeValue: QualifiedAttribute = tag.attributes[attributeKey];
           if (parentTag && attributeValue.uri === RdfXmlParser.RDF) {
             switch (attributeValue.local) {
             case 'about':
-              if (activeTag.subject) {
+              if (activeSubjectValue) {
                 this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
-while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
+while ${attributeValue.value} and ${activeSubjectValue} where found.`));
               }
-              activeTag.subject = this.valueToUri(attributeValue.value, activeTag);
+              activeSubjectValue = attributeValue.value;
               continue;
             case 'ID':
-              if (activeTag.subject) {
+              if (activeSubjectValue) {
                 this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
-while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
+while ${attributeValue.value} and ${activeSubjectValue} where found.`));
               }
-              activeTag.subject = this.valueToUri('#' + attributeValue.value, activeTag);
-              this.claimNodeId(activeTag.subject);
+              activeSubjectValue = '#' + attributeValue.value;
+              claimSubjectNodeId = true;
               continue;
             case 'nodeID':
-              if (activeTag.subject) {
+              if (activeSubjectValue) {
                 this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
-while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
+while ${attributeValue.value} and ${activeSubjectValue} where found.`));
               }
-              activeTag.subject = this.dataFactory.blankNode(attributeValue.value);
+              activeSubjectValue = attributeValue.value;
+              subjectValueBlank = true;
               continue;
             }
           } else if (attributeValue.uri === RdfXmlParser.XML) {
@@ -270,6 +275,15 @@ while ${attributeValue.value} and ${activeTag.subject.value} where found.`));
 
           predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
           objects.push(this.dataFactory.literal(attributeValue.value));
+        }
+
+        // Create the subject value _after_ all attributes have been processed
+        if (activeSubjectValue !== null) {
+          activeTag.subject = subjectValueBlank
+            ? this.dataFactory.blankNode(activeSubjectValue) : this.valueToUri(activeSubjectValue, activeTag);
+          if (claimSubjectNodeId) {
+            this.claimNodeId(activeTag.subject);
+          }
         }
 
         // Skip further handling on root tag

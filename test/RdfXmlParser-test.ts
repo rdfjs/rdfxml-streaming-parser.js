@@ -1307,11 +1307,11 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`);
           return expect(array)
             .toEqualRdfQuadArray([
-              quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop',
+              quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/prop',
                 'http://example.org/here2/fruit/apple'),
-              quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2',
+              quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/prop2',
                 'http://example.org/'),
-              quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/editor',
+              quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/editor',
                 '"def"^^http://example.org/here2/abc'),
             ]);
         });
@@ -1349,6 +1349,23 @@ abc`)).rejects.toBeTruthy();
             quad('http://example.org/dir/file', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/type'),
             quad('http://example.org/dir/file#foo', 'http://example.org/value', 'http://example.org/dir/relpath'),
+          ]);
+      });
+
+      // 2.14
+      it('With an xml:base in an rdf:Description should apply it to the node itself', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="http://example.org/dir/file">
+  <rdf:Description rdf:ID="frag" eg:value="v" xml:base="http://example.org/file2"/>
+  <eg:type rdf:about="relFile" />
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/file2#frag', 'http://example.org/value', '"v"'),
+            quad('http://example.org/dir/relFile', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/type'),
           ]);
       });
 
