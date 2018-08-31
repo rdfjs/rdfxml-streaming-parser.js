@@ -271,8 +271,12 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
             }
           }
 
-          predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
-          objects.push(this.dataFactory.literal(attributeValue.value));
+          // Interpret attributes at this point as properties on this node,
+          // but we ignore attributes that have no prefix or known expanded URI
+          if (attributeValue.prefix !== 'xml' && attributeValue.uri) {
+            predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
+            objects.push(this.dataFactory.literal(attributeValue.value));
+          }
         }
 
         // Create the subject value _after_ all attributes have been processed
@@ -445,23 +449,27 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
             continue;
           }
 
-          // Interpret attributes at this point as properties via implicit blank nodes on the property
-          if (parseTypeResource || activeTag.hadChildren || activeTag.datatype || activeTag.nodeId
-          || activeTag.reifiedStatementId) {
-            this.emit('error', new Error(
-              `Found illegal rdf:* properties on property element with attribute: ${propertyAttributeValue.value}`));
+          // Interpret attributes at this point as properties via implicit blank nodes on the property,
+          // but we ignore attributes that have no prefix or known expanded URI
+          if (propertyAttributeValue.prefix !== 'xml' && propertyAttributeValue.uri) {
+            if (parseTypeResource || activeTag.hadChildren || activeTag.datatype || activeTag.nodeId
+              || activeTag.reifiedStatementId) {
+              this.emit('error', new Error(
+                `Found illegal rdf:* properties on property element with attribute: ${propertyAttributeValue.value}`));
+            }
+            activeTag.hadChildren = true;
+            attributedProperty = true;
+            const implicitPropertyBNode: RDF.BlankNode = this.dataFactory.blankNode();
+            this.emitTriple(activeTag.subject, activeTag.predicate, implicitPropertyBNode,
+              activeTag.reifiedStatementId);
+            this.emitTriple(
+              implicitPropertyBNode,
+              this.dataFactory.namedNode(propertyAttributeValue.uri + propertyAttributeValue.local),
+              this.dataFactory.literal(propertyAttributeValue.value,
+                activeTag.datatype || activeTag.language),
+              activeTag.reifiedStatementId,
+            );
           }
-          activeTag.hadChildren = true;
-          attributedProperty = true;
-          const implicitPropertyBNode: RDF.BlankNode = this.dataFactory.blankNode();
-          this.emitTriple(activeTag.subject, activeTag.predicate, implicitPropertyBNode, activeTag.reifiedStatementId);
-          this.emitTriple(
-            implicitPropertyBNode,
-            this.dataFactory.namedNode(propertyAttributeValue.uri + propertyAttributeValue.local),
-            this.dataFactory.literal(propertyAttributeValue.value,
-              activeTag.datatype || activeTag.language),
-            activeTag.reifiedStatementId,
-          );
         }
       }
     });

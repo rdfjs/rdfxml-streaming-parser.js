@@ -1595,6 +1595,34 @@ abc`)).rejects.toBeTruthy();
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
           ]);
       });
+
+      it('and ignore unrecognized attributes on nodes', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/schema#">
+  <rdf:Description rdf:about="http://example.org/thing" xmlnewthing="anything">
+    <ex:prop1>stuff</ex:prop1>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
+          ]);
+      });
+
+      it('and ignore unrecognized attributes on properties', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/schema#">
+  <rdf:Description rdf:about="http://example.org/thing">
+    <ex:prop1 xmlnewthing="anything">stuff</ex:prop1>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
