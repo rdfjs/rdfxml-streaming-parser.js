@@ -226,7 +226,7 @@ export class RdfXmlParser extends Transform {
         }
 
         const predicates: RDF.Term[] = [];
-        const objects: RDF.Term[] = [];
+        const objects: string[] = [];
 
         // Collect all attributes as triples
         // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
@@ -275,7 +275,7 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
           // but we ignore attributes that have no prefix or known expanded URI
           if (attributeValue.prefix !== 'xml' && attributeValue.uri) {
             predicates.push(this.dataFactory.namedNode(attributeValue.uri + attributeValue.local));
-            objects.push(this.dataFactory.literal(attributeValue.value));
+            objects.push(attributeValue.value);
           }
         }
 
@@ -327,7 +327,9 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
 
           // Emit all collected triples
           for (let i = 0; i < predicates.length; i++) {
-            this.emitTriple(activeTag.subject, predicates[i], objects[i], parentTag.reifiedStatementId);
+            const object: RDF.Term = this.dataFactory.literal(objects[i],
+              activeTag.datatype || activeTag.language);
+            this.emitTriple(activeTag.subject, predicates[i], object, parentTag.reifiedStatementId);
           }
         }
       } else { // currentParseType === ParseType.PROPERTY

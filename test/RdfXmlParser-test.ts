@@ -1623,6 +1623,20 @@ abc`)).rejects.toBeTruthy();
             quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
           ]);
       });
+
+      it('and apply the language on node properties', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/schema#">
+  <rdf:Description rdf:about="http://example.org/node"
+                   xml:lang="fr"
+                   eg:property="chat" />
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/node', 'http://example.org/schema#property', '"chat"@fr'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
