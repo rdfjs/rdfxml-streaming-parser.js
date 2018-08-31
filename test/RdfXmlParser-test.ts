@@ -108,9 +108,19 @@ abc`)).rejects.toBeTruthy();
           .toEqual(DataFactory.namedNode('http://example.org/'));
       });
 
+      it('create a named node from an absolute URI when the baseIRI is empty', () => {
+        expect(parser.valueToUri('http://example.org/', { baseIRI: '' }))
+          .toEqual(DataFactory.namedNode('http://example.org/'));
+      });
+
       it('create a named node from an absolute URI when a baseIRI is given', () => {
         expect(parser.valueToUri('http://example.org/', { baseIRI: 'http://base.org/' }))
           .toEqual(DataFactory.namedNode('http://example.org/'));
+      });
+
+      it('create a named node from the baseIRI when given value is empty', () => {
+        expect(parser.valueToUri('', { baseIRI: 'http://base.org/' }))
+          .toEqual(DataFactory.namedNode('http://base.org/'));
       });
 
       it('create a named node from a relative URI when no baseIRI is given', () => {
@@ -121,6 +131,70 @@ abc`)).rejects.toBeTruthy();
       it('create a named node from a relative URI when a baseIRI is given', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http://base.org/' }))
           .toEqual(DataFactory.namedNode('http://base.org/abc'));
+      });
+
+      it('create a named node from a relative URI when a baseIRI is given and ignore the baseIRI fragment', () => {
+        expect(parser.valueToUri('abc', { baseIRI: 'http://base.org/#frag' }))
+          .toEqual(DataFactory.namedNode('http://base.org/abc'));
+      });
+
+      it('create a named node from a hash', () => {
+        expect(parser.valueToUri('#abc', { baseIRI: 'http://base.org/' }))
+          .toEqual(DataFactory.namedNode('http://base.org/#abc'));
+      });
+
+      it('create a named node and ignore the baseIRI if the value contains a colon', () => {
+        expect(parser.valueToUri('http:abc', { baseIRI: 'http://base.org/' }))
+          .toEqual(DataFactory.namedNode('http:abc'));
+      });
+
+      it('error for a non-absolute baseIRI', () => {
+        expect(() => parser.valueToUri('abc', { baseIRI: 'def' })).toThrow();
+      });
+
+      it('create a named node that has the baseIRI scheme if the value starts with //', () => {
+        expect(parser.valueToUri('//abc', { baseIRI: 'http://base.org/' }))
+          .toEqual(DataFactory.namedNode('http://abc'));
+      });
+
+      it('create a named node from a baseIRI without a / in the path', () => {
+        expect(parser.valueToUri('abc', { baseIRI: 'http://base.org' }))
+          .toEqual(DataFactory.namedNode('http://base.org/abc'));
+      });
+
+      it('create a named node from the baseIRI scheme when the baseIRI contains only ://', () => {
+        expect(parser.valueToUri('abc', { baseIRI: 'http://' }))
+          .toEqual(DataFactory.namedNode('http:abc'));
+      });
+
+      it('create a named node from the baseIRI if something other than a / follows the :', () => {
+        expect(parser.valueToUri('abc', { baseIRI: 'http:a' }))
+          .toEqual(DataFactory.namedNode('http:a/abc'));
+      });
+
+      it('create a named node from the baseIRI scheme if nothing follows the :', () => {
+        expect(parser.valueToUri('abc', { baseIRI: 'http:' }))
+          .toEqual(DataFactory.namedNode('http:abc'));
+      });
+
+      it('create a named node from an absolute path and ignore the path from the base IRI', () => {
+        expect(parser.valueToUri('/abc/def/', { baseIRI: 'http://base.org/123/456/' }))
+          .toEqual(DataFactory.namedNode('http://base.org/abc/def/'));
+      });
+
+      it('create a named node from a baseIRI with http:// and ignore everything after the last slash', () => {
+        expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/a' }))
+          .toEqual(DataFactory.namedNode('http://aa/xyz'));
+      });
+
+      it('create a named node from a baseIRI with http:// and collapse parent paths', () => {
+        expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/parent/parent/../../a' }))
+          .toEqual(DataFactory.namedNode('http://aa/xyz'));
+      });
+
+      it('create a named node from a baseIRI with http:// and remove current-dir paths', () => {
+        expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/././a' }))
+          .toEqual(DataFactory.namedNode('http://aa/xyz'));
       });
     });
 
@@ -1256,6 +1330,25 @@ abc`)).rejects.toBeTruthy();
           .toEqualRdfQuadArray([
             quad('http://example.org/here/#snack', 'http://example.org/stuff/1.0/prop',
               'http://example.org/here/fruit/apple'),
+          ]);
+      });
+
+      // 2.14
+      it('With an xml:base with fragment the fragment is ignored', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="http://example.org/dir/file#frag">
+  <eg:type rdf:about="" />
+  <rdf:Description rdf:ID="foo" >
+    <eg:value rdf:resource="relpath" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/dir/file', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/type'),
+            quad('http://example.org/dir/file#foo', 'http://example.org/value', 'http://example.org/dir/relpath'),
           ]);
       });
 
