@@ -190,14 +190,12 @@ export class RdfXmlParser extends Transform {
           attributes += ` ${attributeKey}="${tag.attributes[attributeKey].value}"`;
         }
         const tagContents: string = `${tagName}${attributes}`;
-        const tagString: string = tag.isSelfClosing ? `<${tagContents} />` : `<${tagContents}>`;
+        const tagString: string = `<${tagContents}>`;
         parentTag.childrenStringTags.push(tagString);
 
         // Inherit the array, so that deeper tags are appended to this same array
         const stringActiveTag: IActiveTag = { childrenStringTags: parentTag.childrenStringTags };
-        if (!tag.isSelfClosing) {
-          stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
-        }
+        stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
         this.activeTagStack.push(stringActiveTag);
 
         // Halt any further processing

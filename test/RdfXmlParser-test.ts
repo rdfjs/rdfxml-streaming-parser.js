@@ -1570,7 +1570,7 @@ abc`)).rejects.toBeTruthy();
           .toEqualRdfQuadArray([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
               '"\n      <a:Box required="true" xmlns:a="http://example.org/a#">\n' +
-              '        <a:widget size="10" />\n' +
+              '        <a:widget size="10"></a:widget>\n' +
               '        <a:grommit id="23">abc</a:grommit>\n' +
               '      </a:Box>\n' +
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
