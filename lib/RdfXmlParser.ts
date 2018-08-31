@@ -184,7 +184,7 @@ export class RdfXmlParser extends Transform {
       // Check if this tag needs to be converted to a string
       if (parentTag && parentTag.childrenStringTags) {
         // Convert this tag to a string
-        const tagName: string = `${tag.prefix}:${tag.local}`;
+        const tagName: string = tag.prefix ? `${tag.prefix}:${tag.local}` : tag.local;
         let attributes: string = '';
         for (const attributeKey in tag.attributes) {
           attributes += ` ${attributeKey}="${tag.attributes[attributeKey].value}"`;

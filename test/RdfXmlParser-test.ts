@@ -1576,6 +1576,25 @@ abc`)).rejects.toBeTruthy();
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
           ]);
       });
+
+      // 2.8
+      it('property element values with rdf:parseType="Literal" to literals without prefixes', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/item01">
+    <ex:prop rdf:parseType="Literal">
+      <Box></Box>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
+              '"\n      <Box></Box>\n' +
+              '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
