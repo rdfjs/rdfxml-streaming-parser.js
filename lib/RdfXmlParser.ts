@@ -293,20 +293,19 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
           }
         }
 
-        // Skip further handling on root tag
+        // Force the creation of a subject if it doesn't exist yet
+        if (!activeTag.subject) {
+          activeTag.subject = this.dataFactory.blankNode();
+        }
+
+        // Emit the type if we're at a typed node
+        if (typedNode) {
+          const type: RDF.NamedNode = this.dataFactory.namedNode(tag.uri + tag.local);
+          this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
+            type, parentTag ? parentTag.reifiedStatementId : null);
+        }
+
         if (parentTag) {
-          // Force the creation of a subject if it doesn't exist yet
-          if (!activeTag.subject) {
-            activeTag.subject = this.dataFactory.blankNode();
-          }
-
-          // Emit the type if we're at a typed node
-          if (typedNode) {
-            const type: RDF.NamedNode = this.dataFactory.namedNode(tag.uri + tag.local);
-            this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-              type, parentTag.reifiedStatementId);
-          }
-
           // If the parent tag defined a predicate, add the current tag as property value
           if (parentTag.predicate) {
             if (parentTag.childrenCollectionSubject) {

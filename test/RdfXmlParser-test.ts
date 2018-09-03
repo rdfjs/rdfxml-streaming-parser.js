@@ -1682,6 +1682,20 @@ abc`)).rejects.toBeTruthy();
               'http://example.org/class/'),
           ]);
       });
+
+      it('a missing rdf:RDF', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<Book xmlns="http://example.org/terms#">
+  <title>Dogs in Hats</title>
+</Book>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/terms#Book'),
+            quad('_:b', 'http://example.org/terms#title',
+              '"Dogs in Hats"'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
