@@ -363,7 +363,6 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
         // Collect all attributes as triples
         // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
         let activeSubSubjectValue: string = null;
-        let claimSubSubjectNodeId: boolean = false;
         let subSubjectValueBlank: boolean = true;
         const predicates: RDF.Term[] = [];
         const objects: RDF.Term[] = [];
@@ -412,7 +411,6 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
                     propertyAttributeValue.value})`));
               }
               activeSubSubjectValue = propertyAttributeValue.value;
-              claimSubSubjectNodeId = true;
               subSubjectValueBlank = true;
               continue;
             case 'parseType':
@@ -484,9 +482,6 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
           const subjectParent: RDF.Term = activeTag.subject;
           activeTag.subject = subSubjectValueBlank
             ? this.dataFactory.blankNode(activeSubSubjectValue) : this.valueToUri(activeSubSubjectValue, activeTag);
-          if (claimSubSubjectNodeId) {
-            this.claimNodeId(activeTag.subject);
-          }
           this.emitTriple(subjectParent, activeTag.predicate, activeTag.subject, activeTag.reifiedStatementId);
 
           // Emit our buffered triples
