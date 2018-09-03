@@ -44,7 +44,6 @@ export class RdfXmlParser extends Transform {
     this.attachSaxListeners();
   }
 
-  // TODO: make unit tests + rerun spec stuff
   public valueToUri(value: string, activeTag: IActiveTag): RDF.NamedNode {
     let baseIRI: string = activeTag.baseIRI || '';
     const baseFragmentPos: number = baseIRI.indexOf('#');
@@ -104,15 +103,13 @@ export class RdfXmlParser extends Transform {
     } else {
       // If there is not even a single '/' after the ':'
       baseSlashAfterColonPos = baseIRI.indexOf('/', baseColonPos + 1);
-      if (baseSlashAfterColonPos < 0) {
-        // If something other than a '/' follows the ':', append the value after a '/',
-        // otherwise, prefix the value with only the baseIRI scheme.
-        // TODO: these cases are equal? collapse?
-        if (baseIRI.length > baseColonPos + 1) {
-          return this.dataFactory.namedNode(baseIRI + '/' + value);
-        } else {
-          return this.dataFactory.namedNode(baseIRIScheme + value);
-        }
+      // Always true: baseSlashAfterColonPos < 0
+      // If something other than a '/' follows the ':', append the value after a '/',
+      // otherwise, prefix the value with only the baseIRI scheme.
+      if (baseIRI.length > baseColonPos + 1) {
+        return this.dataFactory.namedNode(baseIRI + '/' + value);
+      } else {
+        return this.dataFactory.namedNode(baseIRIScheme + value);
       }
     }
 
