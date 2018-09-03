@@ -641,7 +641,7 @@ abc`)).rejects.toBeTruthy();
         return expect(array[0].subject).toBe(array[1].subject);
       });
 
-      it('an rdf:Description with an empty property element should define a blank node', async () => {
+      it('an rdf:Description with an empty property element should define an empty literal', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -652,7 +652,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`))
           .toEqualRdfQuadArray([
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
-              'http://example.org/stuff/1.0/editor', '_:b'),
+              'http://example.org/stuff/1.0/editor', '""'),
           ]);
       });
 

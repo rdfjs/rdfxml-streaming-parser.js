@@ -203,7 +203,6 @@ export class RdfXmlParser extends Transform {
       }
 
       const activeTag: IActiveTag = {};
-      activeTag.selfClosing = tag.isSelfClosing;
       if (parentTag) {
         // Inherit language scope and baseIRI from parent
         activeTag.language = parentTag.language;
@@ -411,6 +410,7 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
                   new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:nodeID (${
                     propertyAttributeValue.value})`));
               }
+              activeTag.hadChildren = true;
               activeSubSubjectValue = propertyAttributeValue.value;
               subSubjectValueBlank = true;
               continue;
@@ -534,7 +534,7 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
         this.emitTriple(poppedTag.childrenCollectionSubject, poppedTag.childrenCollectionPredicate,
           this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), poppedTag.reifiedStatementId);
       } else if (poppedTag.predicate) {
-        if (!poppedTag.hadChildren && (!poppedTag.selfClosing || poppedTag.text)) {
+        if (!poppedTag.hadChildren && poppedTag.childrenParseType !== ParseType.PROPERTY) {
           // Property element contains text
           this.emitTriple(poppedTag.subject, poppedTag.predicate,
             this.dataFactory.literal(poppedTag.text || '', poppedTag.datatype || poppedTag.language),
@@ -582,7 +582,6 @@ export interface IRdfXmlParserArgs {
 }
 
 export interface IActiveTag {
-  selfClosing?: boolean;
   subject?: RDF.Term;
   predicate?: RDF.Term;
   predicateEmitted?: boolean;
