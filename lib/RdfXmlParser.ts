@@ -203,6 +203,7 @@ export class RdfXmlParser extends Transform {
       }
 
       const activeTag: IActiveTag = {};
+      activeTag.selfClosing = tag.isSelfClosing;
       if (parentTag) {
         // Inherit language scope and baseIRI from parent
         activeTag.language = parentTag.language;
@@ -533,10 +534,10 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
         this.emitTriple(poppedTag.childrenCollectionSubject, poppedTag.childrenCollectionPredicate,
           this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), poppedTag.reifiedStatementId);
       } else if (poppedTag.predicate) {
-        if (!poppedTag.hadChildren && poppedTag.text) {
+        if (!poppedTag.hadChildren && (!poppedTag.selfClosing || poppedTag.text)) {
           // Property element contains text
           this.emitTriple(poppedTag.subject, poppedTag.predicate,
-            this.dataFactory.literal(poppedTag.text, poppedTag.datatype || poppedTag.language),
+            this.dataFactory.literal(poppedTag.text || '', poppedTag.datatype || poppedTag.language),
             poppedTag.reifiedStatementId);
         } else if (!poppedTag.predicateEmitted) {
           // Emit remaining properties on an anonymous property element
@@ -581,6 +582,7 @@ export interface IRdfXmlParserArgs {
 }
 
 export interface IActiveTag {
+  selfClosing?: boolean;
   subject?: RDF.Term;
   predicate?: RDF.Term;
   predicateEmitted?: boolean;

@@ -741,6 +741,21 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.3
+      it('property values with empty strings', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <dc:title></dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '""'),
+          ]);
+      });
       // 2.2
       it('multiple rdf:Descriptions', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
