@@ -34,7 +34,7 @@ export class RdfXmlParser extends Transform {
       this.defaultGraph = this.dataFactory.defaultGraph();
     }
 
-    this.saxStream = createStream(this.strict, { xmlns: true });
+    this.saxStream = createStream(this.strict, { xmlns: true, position: false });
 
     // Workaround for an issue in SAX where non-strict mode either lower- or upper-cases all tags.
     if (!this.strict) {
