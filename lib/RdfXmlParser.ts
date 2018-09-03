@@ -233,6 +233,7 @@ export class RdfXmlParser extends Transform {
         let activeSubjectValue: string = null;
         let claimSubjectNodeId: boolean = false;
         let subjectValueBlank: boolean = false;
+        let explicitType: string = null;
         for (const attributeKey in tag.attributes) {
           const attributeValue: QualifiedAttribute = tag.attributes[attributeKey];
           if (parentTag && attributeValue.uri === RdfXmlParser.RDF) {
@@ -259,6 +260,10 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
               }
               activeSubjectValue = attributeValue.value;
               subjectValueBlank = true;
+              continue;
+            case 'type':
+              // Emit the rdf:type later as named node instead of the default literal
+              explicitType = attributeValue.value;
               continue;
             }
           } else if (attributeValue.uri === RdfXmlParser.XML) {
@@ -341,6 +346,11 @@ while ${attributeValue.value} and ${activeSubjectValue} where found.`));
             const object: RDF.Term = this.dataFactory.literal(objects[i],
               activeTag.datatype || activeTag.language);
             this.emitTriple(activeTag.subject, predicates[i], object, parentTag.reifiedStatementId);
+          }
+          // Emit the rdf:type as named node instead of literal
+          if (explicitType) {
+            this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
+              this.dataFactory.namedNode(explicitType), null);
           }
         }
       } else { // currentParseType === ParseType.PROPERTY

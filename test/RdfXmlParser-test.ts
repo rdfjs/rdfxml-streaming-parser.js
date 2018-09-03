@@ -1669,6 +1669,19 @@ abc`)).rejects.toBeTruthy();
             quad('http://example.org/object#uriRef', 'http://example.org/prop2', '"val"'),
           ]);
       });
+
+      it('rdf:type on node elements should be seen as a named node instead of literal', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/resource/"
+                   rdf:type="http://example.org/class/"/>
+</rdf:RDF>`);
+        return expect(array)
+          .toEqualRdfQuadArray([
+            quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/class/'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
