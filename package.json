@@ -39,7 +39,7 @@
     "arrayify-stream": "^1.0.0",
     "coveralls": "^3.0.0",
     "jest": "^23.4.1",
-    "jest-rdf": "^1.1.0",
+    "jest-rdf": "^1.2.0",
     "pre-commit": "^1.2.2",
     "rdf-quad": "^1.2.2",
     "streamify-string": "^1.0.1",

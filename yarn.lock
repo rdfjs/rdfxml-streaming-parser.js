@@ -1693,11 +1693,12 @@ jest-mock@^23.2.0:
   version "23.2.0"
   resolved "https://registry.yarnpkg.com/jest-mock/-/jest-mock-23.2.0.tgz#ad1c60f29e8719d47c26e1138098b6d18b261134"
 
-jest-rdf@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/jest-rdf/-/jest-rdf-1.1.0.tgz#6ebfe58322b64374b1a68b73b71258d0b1ee34ae"
+jest-rdf@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/jest-rdf/-/jest-rdf-1.2.0.tgz#2a062a972f1ad9af6e2956da8bdf0d336387b71a"
   dependencies:
-    rdf-string "^1.1.1"
+    rdf-isomorphic "^1.0.2"
+    rdf-string "^1.2.0"
 
 jest-regex-util@^23.3.0:
   version "23.3.0"
@@ -1982,6 +1983,10 @@ locate-path@^2.0.0:
 lodash.sortby@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
+
+lodash.uniqwith@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.uniqwith/-/lodash.uniqwith-4.5.0.tgz#7a0cbf65f43b5928625a9d4d0dc54b18cadc7ef3"
 
 lodash@^4.13.1, lodash@^4.17.10, lodash@^4.17.4:
   version "4.17.10"
@@ -2535,6 +2540,13 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+rdf-isomorphic@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/rdf-isomorphic/-/rdf-isomorphic-1.0.2.tgz#69fb529f8d2d2f2cccdc97a12b0ecd829a587e88"
+  dependencies:
+    rdf-string "^1.2.0"
+    rdf-terms "^1.2.0"
+
 rdf-quad@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/rdf-quad/-/rdf-quad-1.2.2.tgz#ff39071d4aa04d9a718a21d6c47338feee3c8a40"
@@ -2542,11 +2554,18 @@ rdf-quad@^1.2.2:
     "@rdfjs/data-model" "^1.1.0"
     rdf-string "1.2.0"
 
-rdf-string@1.2.0, rdf-string@^1.1.1:
+rdf-string@1.2.0, rdf-string@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/rdf-string/-/rdf-string-1.2.0.tgz#25cd45ab168c8ed1cde62eb64ac3c2291fc551c0"
   dependencies:
     "@rdfjs/data-model" "^1.1.0"
+
+rdf-terms@^1.2.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/rdf-terms/-/rdf-terms-1.3.0.tgz#7dd7b396402aa5c6d26bef99c00d7e10f5944410"
+  dependencies:
+    "@rdfjs/data-model" "^1.1.0"
+    lodash.uniqwith "^4.5.0"
 
 read-pkg-up@^1.0.1:
   version "1.0.1"

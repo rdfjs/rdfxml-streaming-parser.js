@@ -649,7 +649,7 @@ abc`)).rejects.toBeTruthy();
       it('an empty document', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />`))
-          .toEqual([]);
+          .toBeRdfIsomorphic([]);
       });
 
       // 2.6
@@ -662,7 +662,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description>
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqual([]);
+          .toBeRdfIsomorphic([]);
       });
 
       // 2.6
@@ -674,7 +674,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description>
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqual([]);
+          .toBeRdfIsomorphic([]);
       });
 
       // 2.6
@@ -685,7 +685,7 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description />
 </rdf:RDF>`))
-          .toEqual([]);
+          .toBeRdfIsomorphic([]);
       });
 
       // 2.6
@@ -697,7 +697,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqual([]);
+          .toBeRdfIsomorphic([]);
       });
 
       // 2.6
@@ -708,7 +708,7 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
 </rdf:RDF>`))
-          .toEqual([]);
+          .toBeRdfIsomorphic([]);
       });
 
       // 2.5
@@ -721,7 +721,7 @@ abc`)).rejects.toBeTruthy();
              dc:title="RDF1.1 XML Syntax">
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
               'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
           ]);
@@ -738,7 +738,7 @@ abc`)).rejects.toBeTruthy();
              dc:title="RDF1.1 XML Syntax">
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
               'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
           ]);
@@ -753,7 +753,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description dc:title="RDF1.1 XML Syntax">
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"'),
           ]);
       });
@@ -768,7 +768,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description dc:title="RDF1.1 XML Syntax">
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF1.1 XML Syntax"', 'http://example.org/g1'),
           ]);
       });
@@ -784,7 +784,7 @@ abc`)).rejects.toBeTruthy();
              dc:title2="RDF1.1 XML Syntax bis">
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
               'http://purl.org/dc/elements/1.1/title1', '"RDF1.1 XML Syntax"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
@@ -801,7 +801,10 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description dc:title1="RDF1.1 XML Syntax" dc:title2="RDF1.1 XML Syntax bis">
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array[0].subject).toBe(array[1].subject);
+        return expect(array).toBeRdfIsomorphic([
+          quad('_:b', 'http://purl.org/dc/elements/1.1/title1', '"RDF1.1 XML Syntax"'),
+          quad('_:b', 'http://purl.org/dc/elements/1.1/title2', '"RDF1.1 XML Syntax bis"'),
+        ]);
       });
 
       it('an rdf:Description with an empty property element should define an empty literal', async () => {
@@ -813,7 +816,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor />
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
               'http://example.org/stuff/1.0/editor', '""'),
           ]);
@@ -831,7 +834,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`))
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar',
               'http://example.org/stuff/1.0/editor', 'http://purl.org/net/dajobe/'),
           ]);
@@ -854,11 +857,10 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toBe(array[1].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
-            quad('_:b', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_:b', 'http://example.org/stuff/1.0/homePage', '_:b'),
+          .toBeRdfIsomorphic([
+            quad('_:b1', 'http://example.org/stuff/1.0/editor', '_:b2'),
+            quad('_:b2', 'http://example.org/stuff/1.0/homePage', '_:b3'),
           ]);
       });
 
@@ -879,11 +881,10 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toBe(array[1].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
-            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+          .toBeRdfIsomorphic([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
+            quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
           ]);
       });
 
@@ -898,7 +899,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"'),
           ]);
@@ -915,7 +916,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '""'),
           ]);
       });
@@ -949,11 +950,11 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
-            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
-            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+          .toBeRdfIsomorphic([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
+            quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b2'),
+            quad('_:b2', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"'),
           ]);
@@ -978,13 +979,11 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toBe(array[1].subject);
-        expect(array[0].object).toBe(array[2].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
-            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
-            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+          .toBeRdfIsomorphic([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
+            quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('_:b1', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"'),
           ]);
@@ -1001,7 +1000,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/homePage',
               'http://purl.org/net/dajobe/'),
           ]);
@@ -1023,13 +1022,11 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toBe(array[1].subject);
-        expect(array[0].object).toBe(array[2].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
-            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
-            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+          .toBeRdfIsomorphic([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
+            quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('_:b1', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"'),
           ]);
@@ -1046,7 +1043,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"@en-us'),
           ]);
@@ -1067,7 +1064,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us'),
           ]);
@@ -1088,7 +1085,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
           ]);
@@ -1105,7 +1102,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"@en-us'),
           ]);
@@ -1126,7 +1123,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
           ]);
@@ -1151,7 +1148,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
@@ -1177,7 +1174,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/size',
               '"123"^^http://www.w3.org/2001/XMLSchema#int'),
           ]);
@@ -1193,7 +1190,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/size',
               '"123"^^http://www.w3.org/2001/XMLSchema#int'),
           ]);
@@ -1210,7 +1207,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`);
         expect(array[0].object).toEqual(DataFactory.blankNode('abc'));
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor',
               '_:b'),
           ]);
@@ -1225,7 +1222,7 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`);
         expect(array[0].subject).toEqual(DataFactory.blankNode('abc'));
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
           ]);
       });
@@ -1249,12 +1246,12 @@ abc`)).rejects.toBeTruthy();
         expect(array[2].subject).toEqual(DataFactory.blankNode('abc'));
         expect(array[3].subject).toEqual(DataFactory.blankNode('abc'));
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
-            quad('_b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
           ]);
       });
 
@@ -1272,15 +1269,13 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[1].object).toBe(array[2].subject);
-        expect(array[1].object).toBe(array[3].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
-            quad('_b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
+            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('_:b', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
           ]);
       });
 
@@ -1296,7 +1291,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
@@ -1314,13 +1309,12 @@ abc`)).rejects.toBeTruthy();
     <ex:editor ex:fullName="Dave Beckett" />
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[1].object).toBe(array[2].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
-            quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
+            quad('_:b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
           ]);
       });
 
@@ -1336,7 +1330,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/stuff/1.0/Document'),
             quad('http://example.org/thing', 'http://purl.org/dc/elements/1.1/title',
@@ -1355,7 +1349,7 @@ abc`)).rejects.toBeTruthy();
   </ex:Document>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/stuff/1.0/Document'),
             quad('http://example.org/thing', 'http://purl.org/dc/elements/1.1/title',
@@ -1376,7 +1370,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop',
               'http://example.org/here/fruit/apple'),
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2',
@@ -1399,7 +1393,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop',
               'http://example.org/here/fruit/apple'),
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2',
@@ -1423,7 +1417,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
           return expect(array)
-            .toEqualRdfQuadArray([
+            .toBeRdfIsomorphic([
               quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/prop',
                 'http://example.org/here2/fruit/apple'),
               quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/prop2',
@@ -1444,7 +1438,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/here/#snack', 'http://example.org/stuff/1.0/prop',
               'http://example.org/here/fruit/apple'),
           ]);
@@ -1462,7 +1456,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/dir/file', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/type'),
             quad('http://example.org/dir/file#foo', 'http://example.org/value', 'http://example.org/dir/relpath'),
@@ -1479,7 +1473,7 @@ abc`)).rejects.toBeTruthy();
   <eg:type rdf:about="relFile" />
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/file2#frag', 'http://example.org/value', '"v"'),
             quad('http://example.org/dir/relFile', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/type'),
@@ -1497,7 +1491,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Seq>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq'),
             quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_1',
@@ -1522,21 +1516,15 @@ abc`)).rejects.toBeTruthy();
     </ex:hasFruit>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toBe(array[1].subject);
-        expect(array[0].object).toBe(array[2].subject);
-        expect(array[2].object).toBe(array[3].subject);
-        expect(array[2].object).toBe(array[4].subject);
-        expect(array[4].object).toBe(array[5].subject);
-        expect(array[4].object).toBe(array[6].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
-            quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit', '_:b'),
-            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/banana'),
-            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b'),
-            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/apple'),
-            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b'),
-            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/pear'),
-            quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+          .toBeRdfIsomorphic([
+            quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit', '_:b1'),
+            quad('_:b1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/banana'),
+            quad('_:b1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b2'),
+            quad('_:b2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/apple'),
+            quad('_:b2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b3'),
+            quad('_:b3', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/pear'),
+            quad('_:b3', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
           ]);
       });
@@ -1551,7 +1539,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
           ]);
@@ -1567,7 +1555,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
           ]);
@@ -1584,7 +1572,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -1610,7 +1598,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', 'http://example.org/2'),
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -1635,7 +1623,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop1', 'http://example.org/2'),
             quad('http://example.org/2', 'http://example.org/stuff/1.0/prop2', '"abc"'),
           ]);
@@ -1653,10 +1641,8 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toBe(array[4].object);
-        expect(array[0].object).toBe(array[5].subject);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '_:b'),
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -1681,7 +1667,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:ID="frag" ex:value="v" />
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/dir/file#frag', 'http://example.org/value', '"v"'),
             quad('http://example.org/triples#frag', 'http://example.org/value', '"v"'),
           ]);
@@ -1702,7 +1688,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
               '"\n      <a:Box required="true" xmlns:a="http://example.org/a#">\n' +
               '        <a:widget size="10"></a:widget>\n' +
@@ -1724,7 +1710,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
               '"\n      <Box></Box>\n' +
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
@@ -1740,7 +1726,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
           ]);
       });
@@ -1754,7 +1740,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
           ]);
       });
@@ -1768,7 +1754,7 @@ abc`)).rejects.toBeTruthy();
                    eg:property="chat" />
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/node', 'http://example.org/schema#property', '"chat"@fr'),
           ]);
       });
@@ -1783,7 +1769,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_:b0', 'http://example.org/prop1', '_:b1'),
             quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -1805,7 +1791,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_:b0', 'http://example.org/prop1', '_:b1'),
             quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -1827,7 +1813,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_:b', 'http://example.org/prop1', 'http://example.org/object#uriRef'),
             quad('http://example.org/object#uriRef', 'http://example.org/prop2', '"val"'),
           ]);
@@ -1840,7 +1826,7 @@ abc`)).rejects.toBeTruthy();
                    rdf:type="http://example.org/class/"/>
 </rdf:RDF>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/class/'),
           ]);
@@ -1852,7 +1838,7 @@ abc`)).rejects.toBeTruthy();
   <title>Dogs in Hats</title>
 </Book>`);
         return expect(array)
-          .toEqualRdfQuadArray([
+          .toBeRdfIsomorphic([
             quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/terms#Book'),
             quad('_:b', 'http://example.org/terms#title',
