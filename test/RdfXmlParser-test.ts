@@ -1,8 +1,8 @@
-import * as DataFactory from "@rdfjs/data-model";
 import "jest-rdf";
 import * as RDF from "rdf-js";
 import {SAXStream, Tag} from "sax";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
+const DataFactory = require('@rdfjs/data-model');
 const streamifyString = require('streamify-string');
 const arrayifyStream = require('arrayify-stream');
 const quad = require('rdf-quad');
