@@ -12,6 +12,30 @@ export class RdfXmlParser extends Transform {
   public static readonly DEFAULT_NS = {
     xml: RdfXmlParser.XML,
   };
+  public static readonly FORBIDDEN_NODE_ELEMENTS = [
+    'RDF',
+    'ID',
+    'about',
+    'bagID',
+    'parseType',
+    'resource',
+    'nodeID',
+    'li',
+    'aboutEach',
+    'aboutEachPrefix',
+  ];
+  public static readonly FORBIDDEN_PROPERTY_ELEMENTS = [
+    'Description',
+    'RDF',
+    'ID',
+    'about',
+    'bagID',
+    'parseType',
+    'resource',
+    'nodeID',
+    'aboutEach',
+    'aboutEachPrefix',
+  ];
 
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
@@ -282,7 +306,7 @@ export class RdfXmlParser extends Transform {
     activeTag.ns = RdfXmlParser.parseNamespace(tag, parentTag);
 
     if (currentParseType === ParseType.RESOURCE) {
-      this.onTagResource(tag, activeTag, parentTag);
+      this.onTagResource(tag, activeTag, parentTag, !parentTag);
     } else { // currentParseType === ParseType.PROPERTY
       this.onTagProperty(tag, activeTag, parentTag);
     }
@@ -293,14 +317,20 @@ export class RdfXmlParser extends Transform {
    * @param {QualifiedTag} tag A SAX tag.
    * @param {IActiveTag} activeTag The currently active tag.
    * @param {IActiveTag} parentTag The parent tag or null.
+   * @param {boolean} rootTag If we are currently processing the root tag.
    */
-  protected onTagResource(tag: Tag, activeTag: IActiveTag, parentTag: IActiveTag) {
+  protected onTagResource(tag: Tag, activeTag: IActiveTag, parentTag: IActiveTag, rootTag: boolean) {
     const tagExpanded: IExpandedPrefix = RdfXmlParser.expandPrefixedTerm(tag.name, activeTag.ns);
 
     activeTag.childrenParseType = ParseType.PROPERTY;
     // Assume that the current node is a _typed_ node (2.13), unless we find an rdf:Description as node name
     let typedNode: boolean = true;
     if (tagExpanded.uri === RdfXmlParser.RDF) {
+      // Check forbidden property element names
+      if (!rootTag && RdfXmlParser.FORBIDDEN_NODE_ELEMENTS.indexOf(tagExpanded.local) >= 0) {
+        this.emit('error', new Error(`Illegal node element name: ${tagExpanded.local}`));
+      }
+
       switch (tagExpanded.local) {
       case 'RDF':
         // Tags under <rdf:RDF> must always be resources
@@ -460,6 +490,13 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
     } else {
       activeTag.predicate = this.dataFactory.namedNode(tagExpanded.uri + tagExpanded.local);
     }
+
+    // Check forbidden property element names
+    if (tagExpanded.uri === RdfXmlParser.RDF
+      && RdfXmlParser.FORBIDDEN_PROPERTY_ELEMENTS.indexOf(tagExpanded.local) >= 0) {
+      this.emit('error', new Error(`Illegal property element name: ${tagExpanded.local}`));
+    }
+
     activeTag.predicateSubPredicates = [];
     activeTag.predicateSubObjects = [];
     let parseTypeResource: boolean = false;

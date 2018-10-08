@@ -642,6 +642,186 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(new Error('Found illegal rdf:* properties on property element with attribute: abc'));
       });
+
+      // Forbidden property element name
+      it('on Description as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:Description rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: Description'));
+      });
+
+      // Forbidden property element name
+      it('on ID as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:ID rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: ID'));
+      });
+
+      // Forbidden property element name
+      it('on RDF as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:RDF rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: RDF'));
+      });
+
+      // Forbidden property element name
+      it('on about as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:about rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: about'));
+      });
+
+      // Forbidden property element name
+      it('on bagID as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:bagID rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: bagID'));
+      });
+
+      // Forbidden property element name
+      it('on parseType as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:parseType rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: parseType'));
+      });
+
+      // Forbidden property element name
+      it('on resource as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:resource rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: resource'));
+      });
+
+      // Forbidden property element name
+      it('on nodeID as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:nodeID rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: nodeID'));
+      });
+
+      // Forbidden property element name
+      it('on aboutEach as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:aboutEach rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: aboutEach'));
+      });
+
+      // Forbidden property element name
+      it('on aboutEachPrefix as property element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/node1">
+    <rdf:aboutEachPrefix rdf:resource="http://example.org/node2"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal property element name: aboutEachPrefix'));
+      });
+
+      // Forbidden node element name
+      it('on RDF as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:RDF/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: RDF'));
+      });
+
+      // Forbidden node element name
+      it('on ID as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:ID/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: ID'));
+      });
+
+      // Forbidden node element name
+      it('on about as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:about/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: about'));
+      });
+
+      // Forbidden node element name
+      it('on bagID as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:bagID/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: bagID'));
+      });
+
+      // Forbidden node element name
+      it('on parseType as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:parseType/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: parseType'));
+      });
+
+      // Forbidden node element name
+      it('on resource as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:resource/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: resource'));
+      });
+
+      // Forbidden node element name
+      it('on nodeID as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:nodeID/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: nodeID'));
+      });
+
+      // Forbidden node element name
+      it('on li as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:li/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: li'));
+      });
+
+      // Forbidden node element name
+      it('on aboutEach as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:aboutEach/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: aboutEach'));
+      });
+
+      // Forbidden node element name
+      it('on aboutEachPrefix as node element name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:aboutEachPrefix/>
+</rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: aboutEachPrefix'));
+      });
     });
 
     describe('should parse', () => {
