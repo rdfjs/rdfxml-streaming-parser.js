@@ -78,8 +78,8 @@
     "build": "tsc",
     "validate": "npm ls",
     "prepare": "npm run build",
-    "spec": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o summary -e",
-    "spec-earl": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json -e > earl.ttl"
+    "spec": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o summary",
+    "spec-earl": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json > earl.ttl"
   },
   "dependencies": {
     "@rdfjs/data-model": "^1.1.0",
