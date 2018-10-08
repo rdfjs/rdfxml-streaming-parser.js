@@ -822,6 +822,67 @@ abc`)).rejects.toBeTruthy();
   <rdf:aboutEachPrefix/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: aboutEachPrefix'));
       });
+
+      // Illegal XML name production
+      it('on rdf:nodeID with illegal XML Name on a property element', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+ <rdf:Description>
+   <eg:prop rdf:nodeID="q:name" />
+ </rdf:Description>
+
+</rdf:RDF>`)).rejects.toEqual(new Error('Not a valid NCName: q:name'));
+      });
+
+      // Illegal XML name production
+      it('on rdf:nodeID with illegal XML Name on a node element', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+ <rdf:Description rdf:nodeID="_:bnode" />
+
+</rdf:RDF>`)).rejects.toEqual(new Error('Not a valid NCName: _:bnode'));
+      });
+
+      // Illegal XML name production
+      it('on rdf:ID with illegal XML Name', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+ <!-- &#x301; is a non-spacing acute accent.
+      It is legal within an XML Name, but not as the first
+      character.     -->
+
+ <rdf:Description rdf:ID="&#x301;bb" eg:prop="val" />
+
+</rdf:RDF>`)).rejects.toEqual(new Error('Not a valid NCName: ́bb'));
+      });
+
+      // Deprecated rdf:bagID
+      it('on rdf:bagID on a property element', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+ <rdf:Description>
+   <eg:prop rdf:bagID="q:name" />
+ </rdf:Description>
+
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:bagID is not supported.'));
+      });
+
+      // Deprecated rdf:bagID
+      it('on rdf:bagID on a node element', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+ <rdf:Description rdf:bagID='333-555-666' />
+
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:bagID is not supported.'));
+      });
     });
 
     describe('should parse', () => {

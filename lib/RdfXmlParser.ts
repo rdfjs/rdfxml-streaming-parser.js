@@ -36,6 +36,8 @@ export class RdfXmlParser extends Transform {
     'aboutEach',
     'aboutEachPrefix',
   ];
+  // tslint:disable-next-line:max-line-length
+  public static readonly NCNAME_MATCHER = /^([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_])([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_\-.0-9#xB7\u{0300}-\u{036F}\u{203F}-\u{2040}])*$/u;
 
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
@@ -251,6 +253,18 @@ export class RdfXmlParser extends Transform {
     return this.dataFactory.namedNode(baseIRI.substr(0, baseSlashAfterColonPos) + value);
   }
 
+  /**
+   * Validate the given value as an NCName: https://www.w3.org/TR/xml-names/#NT-NCName
+   * If it is invalid, an error will be emitted.
+   * @param {string} value A value.
+   */
+  public validateNcname(value: string) {
+    // Validate term as an NCName: https://www.w3.org/TR/xml-names/#NT-NCName
+    if (!RdfXmlParser.NCNAME_MATCHER.test(value)) {
+      this.emit('error', new Error(`Not a valid NCName: ${value}`));
+    }
+  }
+
   protected attachSaxListeners() {
     this.saxStream.on('error', (error) => this.emit('error', error));
     this.saxStream.on('opentag', this.onTag.bind(this));
@@ -366,6 +380,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
             this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
 while ${attributeValue} and ${activeSubjectValue} where found.`));
           }
+          this.validateNcname(attributeValue);
           activeSubjectValue = '#' + attributeValue;
           claimSubjectNodeId = true;
           continue;
@@ -374,8 +389,12 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
             this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
 while ${attributeValue} and ${activeSubjectValue} where found.`));
           }
+          this.validateNcname(attributeValue);
           activeSubjectValue = attributeValue;
           subjectValueBlank = true;
+          continue;
+        case 'bagID':
+          this.emit('error', new Error(`rdf:bagID is not supported.`));
           continue;
         case 'type':
           // Emit the rdf:type later as named node instead of the default literal
@@ -554,9 +573,13 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
               new Error(`rdf:parseType is not allowed on property elements with rdf:nodeID (${
                 propertyAttributeValue})`));
           }
+          this.validateNcname(propertyAttributeValue);
           activeTag.hadChildren = true;
           activeSubSubjectValue = propertyAttributeValue;
           subSubjectValueBlank = true;
+          continue;
+        case 'bagID':
+          this.emit('error', new Error(`rdf:bagID is not supported.`));
           continue;
         case 'parseType':
           // Validation
@@ -599,6 +622,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           }
           continue;
         case 'ID':
+          this.validateNcname(propertyAttributeValue);
           activeTag.reifiedStatementId = this.valueToUri('#' + propertyAttributeValue, activeTag);
           this.claimNodeId(activeTag.reifiedStatementId);
           continue;
