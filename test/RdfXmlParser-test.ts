@@ -509,7 +509,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:parseType="Resource" rdf:resource="http://www.w3.org/TR/rdf-syntax-grammar" />
   </rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:resource ' +
+          new Error('rdf:parseType is not allowed on property elements with rdf:resource ' +
             '(http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
@@ -523,7 +523,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:parseType="Resource" rdf:datatype="http://www.w3.org/TR/rdf-syntax-grammar" />
   </rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:datatype ' +
+          new Error('rdf:parseType is not allowed on property elements with rdf:datatype ' +
             '(http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
@@ -549,7 +549,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
     <ex:editor rdf:parseType="Resource" rdf:nodeID="abc" />
   </rdf:Description>
-</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType="Resource" is not allowed on property elements ' +
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType is not allowed on property elements ' +
           'with rdf:nodeID (abc)'));
       });
 
@@ -575,7 +575,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:resource="http://www.w3.org/TR/rdf-syntax-grammar" rdf:parseType="Resource" />
   </rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:nodeID ' +
+          new Error('rdf:parseType is not allowed on property elements with rdf:nodeID ' +
             'or rdf:resource (http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
@@ -589,7 +589,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:datatype="http://www.w3.org/TR/rdf-syntax-grammar" rdf:parseType="Resource" />
   </rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('rdf:parseType="Resource" is not allowed on property elements with rdf:datatype ' +
+          new Error('rdf:parseType is not allowed on property elements with rdf:datatype ' +
             '(http://www.w3.org/TR/rdf-syntax-grammar)'));
       });
 
@@ -602,7 +602,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
     <ex:editor rdf:nodeID="abc" rdf:parseType="Resource" />
   </rdf:Description>
-</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType="Resource" is not allowed on property elements with ' +
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType is not allowed on property elements with ' +
           'rdf:nodeID or rdf:resource (abc)'));
       });
 
@@ -615,7 +615,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
     <ex:editor dc:title="abc" rdf:parseType="Resource" />
   </rdf:Description>
-</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType="Resource" is not allowed when non-rdf:* property attributes ' +
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:parseType is not allowed when non-rdf:* property attributes ' +
           'are present'));
       });
 

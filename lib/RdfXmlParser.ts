@@ -499,7 +499,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
 
     activeTag.predicateSubPredicates = [];
     activeTag.predicateSubObjects = [];
-    let parseTypeResource: boolean = false;
+    let parseType: boolean = false;
     let attributedProperty: boolean = false;
 
     // Collect all attributes as triples
@@ -519,9 +519,9 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
             this.emit('error', new Error(`Found both rdf:resource (${propertyAttributeValue
               }) and rdf:nodeID (${activeSubSubjectValue}).`));
           }
-          if (parseTypeResource) {
+          if (parseType) {
             this.emit('error',
-              new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:resource (${
+              new Error(`rdf:parseType is not allowed on property elements with rdf:resource (${
                 propertyAttributeValue})`));
           }
           activeTag.hadChildren = true;
@@ -533,9 +533,9 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
             this.emit('error', new Error(
               `Found both non-rdf:* property attributes and rdf:datatype (${propertyAttributeValue}).`));
           }
-          if (parseTypeResource) {
+          if (parseType) {
             this.emit('error',
-              new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:datatype (${
+              new Error(`rdf:parseType is not allowed on property elements with rdf:datatype (${
                 propertyAttributeValue})`));
           }
           activeTag.datatype = this.valueToUri(propertyAttributeValue, activeTag);
@@ -549,9 +549,9 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
             this.emit('error', new Error(
               `Found both rdf:resource and rdf:nodeID (${propertyAttributeValue}).`));
           }
-          if (parseTypeResource) {
+          if (parseType) {
             this.emit('error',
-              new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:nodeID (${
+              new Error(`rdf:parseType is not allowed on property elements with rdf:nodeID (${
                 propertyAttributeValue})`));
           }
           activeTag.hadChildren = true;
@@ -559,25 +559,25 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           subSubjectValueBlank = true;
           continue;
         case 'parseType':
-          if (propertyAttributeValue === 'Resource') {
-            parseTypeResource = true;
-            activeTag.childrenParseType = ParseType.PROPERTY;
+          // Validation
+          if (attributedProperty) {
+            this.emit('error', new Error(
+              `rdf:parseType is not allowed when non-rdf:* property attributes are present`));
+          }
+          if (activeTag.datatype) {
+            this.emit('error',
+              new Error(`rdf:parseType is not allowed on property elements with rdf:datatype (${
+                activeTag.datatype.value})`));
+          }
+          if (activeSubSubjectValue) {
+            this.emit('error', new Error(
+              `rdf:parseType is not allowed on property elements with rdf:nodeID or rdf:resource (${
+                activeSubSubjectValue})`));
+          }
 
-            // Validation
-            if (attributedProperty) {
-              this.emit('error', new Error(
-                `rdf:parseType="Resource" is not allowed when non-rdf:* property attributes are present`));
-            }
-            if (activeTag.datatype) {
-              this.emit('error',
-                new Error(`rdf:parseType="Resource" is not allowed on property elements with rdf:datatype (${
-                  activeTag.datatype.value})`));
-            }
-            if (activeSubSubjectValue) {
-              this.emit('error', new Error(
-                `rdf:parseType="Resource" is not allowed on property elements with rdf:nodeID or rdf:resource (${
-                  activeSubSubjectValue})`));
-            }
+          if (propertyAttributeValue === 'Resource') {
+            parseType = true;
+            activeTag.childrenParseType = ParseType.PROPERTY;
 
             // Turn this property element into a node element
             const nestedBNode: RDF.BlankNode = this.dataFactory.blankNode();
@@ -585,12 +585,14 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
             activeTag.subject = nestedBNode;
             activeTag.predicate = null;
           } else if (propertyAttributeValue === 'Collection') {
+            parseType = true;
             // Interpret children as being part of an rdf:List
             activeTag.hadChildren = true;
             activeTag.childrenCollectionSubject = activeTag.subject;
             activeTag.childrenCollectionPredicate = activeTag.predicate;
             subSubjectValueBlank = false;
           } else if (propertyAttributeValue === 'Literal') {
+            parseType = true;
             // Interpret children as being part of a literal string
             activeTag.childrenTagsToString = true;
             activeTag.childrenStringTags = [];
@@ -611,7 +613,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
       // Interpret attributes at this point as properties via implicit blank nodes on the property,
       // but we ignore attributes that have no prefix or known expanded URI
       if (propertyAttributeKeyExpanded.prefix !== 'xml' && propertyAttributeKeyExpanded.uri) {
-        if (parseTypeResource || activeTag.datatype) {
+        if (parseType || activeTag.datatype) {
           this.emit('error', new Error(
             `Found illegal rdf:* properties on property element with attribute: ${propertyAttributeValue}`));
         }
