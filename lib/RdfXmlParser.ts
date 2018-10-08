@@ -400,6 +400,12 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           // Emit the rdf:type later as named node instead of the default literal
           explicitType = attributeValue;
           continue;
+        case 'aboutEach':
+          this.emit('error', new Error(`rdf:aboutEach is not supported.`));
+          continue;
+        case 'aboutEachPrefix':
+          this.emit('error', new Error(`rdf:aboutEachPrefix is not supported.`));
+          continue;
         }
       } else if (attributeKeyExpanded.uri === RdfXmlParser.XML) {
         if (attributeKeyExpanded.local === 'lang') {

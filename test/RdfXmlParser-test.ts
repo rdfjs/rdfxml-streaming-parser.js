@@ -883,6 +883,40 @@ abc`)).rejects.toBeTruthy();
 
 </rdf:RDF>`)).rejects.toEqual(new Error('rdf:bagID is not supported.'));
       });
+
+      // Deprecated rdf:aboutEach
+      it('on rdf:aboutEach', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+  <rdf:Bag rdf:ID="node">
+    <rdf:li rdf:resource="http://example.org/node2"/>
+  </rdf:Bag>
+
+  <rdf:Description rdf:aboutEach="#node">
+    <dc:rights xmlns:dc="http://purl.org/dc/elements/1.1/">me</dc:rights>
+  </rdf:Description>
+
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:aboutEach is not supported.'));
+      });
+
+      // Deprecated rdf:aboutEachPrefix
+      it('on rdf:aboutEachPrefix', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+  <rdf:Description rdf:about="http://example.org/node">
+    <eg:property>foo</eg:property>
+  </rdf:Description>
+
+  <rdf:Description rdf:aboutEachPrefix="http://example.org/">
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">me</dc:creator>
+  </rdf:Description>
+
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:aboutEachPrefix is not supported.'));
+      });
     });
 
     describe('should parse', () => {
