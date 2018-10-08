@@ -406,6 +406,9 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
         case 'aboutEachPrefix':
           this.emit('error', new Error(`rdf:aboutEachPrefix is not supported.`));
           continue;
+        case 'li':
+          this.emit('error', new Error(`rdf:li on node elements are not supported.`));
+          continue;
         }
       } else if (attributeKeyExpanded.uri === RdfXmlParser.XML) {
         if (attributeKeyExpanded.local === 'lang') {

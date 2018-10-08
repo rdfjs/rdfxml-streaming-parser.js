@@ -917,6 +917,16 @@ abc`)).rejects.toBeTruthy();
 
 </rdf:RDF>`)).rejects.toEqual(new Error('rdf:aboutEachPrefix is not supported.'));
       });
+
+      // Forbidden rdf:li on node elements
+      it('on li node elements', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:foo="http://foo/">
+
+  <foo:bar rdf:li="1"/>
+</rdf:RDF>`)).rejects.toEqual(new Error('rdf:li on node elements are not supported.'));
+      });
     });
 
     describe('should parse', () => {
