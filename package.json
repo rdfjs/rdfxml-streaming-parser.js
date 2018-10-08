@@ -42,6 +42,7 @@
     "jest-rdf": "^1.2.0",
     "pre-commit": "^1.2.2",
     "rdf-quad": "^1.2.2",
+    "rdf-test-suite": "^1.0.0",
     "streamify-string": "^1.0.1",
     "ts-jest": "^23.10.0",
     "tslint": "^5.8.0",
@@ -76,7 +77,9 @@
     "lint": "tslint index.ts lib/**/*.ts test/**/*.ts --exclude '**/*.d.ts'",
     "build": "tsc",
     "validate": "npm ls",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "spec": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o summary -e",
+    "spec-earl": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json -e > earl.ttl"
   },
   "dependencies": {
     "@rdfjs/data-model": "^1.1.0",
