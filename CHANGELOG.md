@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.0.1"></a>
+## [v1.0.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.0.0...v1.0.1) - 2018-10-09
+
+### Fixed
+* [Throw an error on li attributes on node elements](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/affb69bafb7f6ccfa72be731a7058314a541e2b4)
+* [Throw errors on rdf:aboutEach and rdf:aboutEachPrefix](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/d981af760f5b4a21d73d325f4105da203bd8223c)
+* [Add stricter NCName validation](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/25d97be70d88e18aed856c9aae15741cc9300c5e)
+* [Make parseType and resource interactions more strict](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/25e397285db03e8094197515394ee62f88f29761)
+* [Add blacklists for forbidden node and property element names](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/1e812fcbaef4bb4ad112f3eec83e3ce91bc97d51)
+
 <a name="1.0.0"></a>
 ## [1.0.0] - 2018-09-04
 * Initial release
