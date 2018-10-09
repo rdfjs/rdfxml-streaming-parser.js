@@ -40,6 +40,7 @@
     "coveralls": "^3.0.0",
     "jest": "^23.4.1",
     "jest-rdf": "^1.2.0",
+    "manual-git-changelog": "^1.0.0",
     "pre-commit": "^1.2.2",
     "rdf-quad": "^1.2.2",
     "rdf-test-suite": "^1.0.0",
@@ -79,7 +80,8 @@
     "validate": "npm ls",
     "prepare": "npm run build",
     "spec": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o summary",
-    "spec-earl": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json > earl.ttl"
+    "spec-earl": "rdf-test-suite spec/parser.js https://www.w3.org/2013/RDFXMLTests/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json > earl.ttl",
+    "version": "manual-git-changelog onversion"
   },
   "dependencies": {
     "@rdfjs/data-model": "^1.1.0",
