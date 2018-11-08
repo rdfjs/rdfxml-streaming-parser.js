@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.1.0"></a>
+## [v1.1.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.0.1...v1.1.0) - 2018-11-08
+
+### Changed
+* [Update to generic RDFJS typings](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/f6558c57b5a2de83e775fe82f4e97f576d6a78c7)
+* [Depend on relative-to-absolute-iri for IRI resolving](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/8fb6beb72d159be7b1a86b62701dc8274be9619e)
+
 <a name="v1.0.1"></a>
 ## [v1.0.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.0.0...v1.0.1) - 2018-10-09
 
