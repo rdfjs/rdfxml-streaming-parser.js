@@ -1,7 +1,8 @@
 import * as RDF from "rdf-js";
 import {resolve} from "relative-to-absolute-iri";
 import {createStream, SAXStream, Tag} from "sax";
-import {Transform, TransformCallback} from "stream";
+import {PassThrough, Transform, TransformCallback} from "stream";
+import EventEmitter = NodeJS.EventEmitter;
 
 export class RdfXmlParser extends Transform {
 
@@ -40,6 +41,7 @@ export class RdfXmlParser extends Transform {
   // tslint:disable-next-line:max-line-length
   public static readonly NCNAME_MATCHER = /^([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_])([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_\-.0-9#xB7\u{0300}-\u{036F}\u{203F}-\u{2040}])*$/u;
 
+  private readonly options: IRdfXmlParserArgs;
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
   private readonly defaultGraph?: RDF.Term;
@@ -54,6 +56,7 @@ export class RdfXmlParser extends Transform {
 
     if (args) {
       Object.assign(this, args);
+      this.options = args;
     }
     if (!this.dataFactory) {
       this.dataFactory = require('@rdfjs/data-model');
@@ -141,6 +144,20 @@ export class RdfXmlParser extends Transform {
       uri = defaultNamespace || '';
     }
     return { prefix, local, uri };
+  }
+
+  /**
+   * Parses the given text stream into a quad stream.
+   * @param {NodeJS.EventEmitter} stream A text stream.
+   * @return {NodeJS.EventEmitter} A quad stream.
+   */
+  public import(stream: EventEmitter): EventEmitter {
+    const output = new PassThrough({ objectMode: true });
+    stream.on('error', (error) => parsed.emit('error', error));
+    stream.on('data', (data) => output.write(data));
+    stream.on('end', () => output.emit('end'));
+    const parsed = output.pipe(new RdfXmlParser(this.options));
+    return parsed;
   }
 
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {

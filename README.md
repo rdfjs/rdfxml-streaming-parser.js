@@ -70,6 +70,22 @@ myParser.write(`</rdf:RDF>`);
 myParser.end();
 ```
 
+### Import streams
+
+This parser implements the RDFJS [Sink interface](https://rdf.js.org/#sink-interface),
+which makes it possible to alternatively parse streams using the `import` method.
+
+```javascript
+const myParser = new RdfXmlParser();
+
+const myTextStream = fs.createReadStream('myfile.rdf');
+
+myParser.import(myTextStream)
+  .on('data', console.log)
+  .on('error', console.error)
+  .on('end', () => console.log('All triples were parsed!'));
+```
+
 ## Configuration
 
 Optionally, the following parameters can be set in the `RdfXmlParser` constructor:

@@ -1,6 +1,7 @@
 import "jest-rdf";
 import * as RDF from "rdf-js";
 import {SAXStream, Tag} from "sax";
+import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 const DataFactory = require('@rdfjs/data-model');
 const streamifyString = require('streamify-string');
@@ -2213,6 +2214,53 @@ abc`)).rejects.toBeTruthy();
         expect(streamParser.read(1)).toBeFalsy();
         expect(streamParser.writable).toBeFalsy();
       });
+    });
+  });
+
+  describe('#import', () => {
+    let parser;
+
+    beforeAll(() => {
+      parser = new RdfXmlParser();
+    });
+
+    it('should parse a stream', async () => {
+      const stream = streamifyString(`<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/resource/"
+                   rdf:type="http://example.org/class/"/>
+</rdf:RDF>`);
+      return expect(await arrayifyStream(parser.import(stream))).toBeRdfIsomorphic([
+        quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+          'http://example.org/class/'),
+      ]);
+    });
+
+    it('should parse another stream', async () => {
+      const stream = streamifyString(`<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="http://example.org/triples">
+  <rdf:Description>
+    <eg:prop1 eg:prop2="val" rdf:ID="reify"></eg:prop1>
+  </rdf:Description>
+</rdf:RDF>`);
+      return expect(await arrayifyStream(parser.import(stream))).toBeRdfIsomorphic([
+        quad('_:b0', 'http://example.org/prop1', '_:b1'),
+        quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+          'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
+        quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject', '_:b0'),
+        quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',
+          'http://example.org/prop1'),
+        quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#object', '_:b1'),
+        quad('_:b1', 'http://example.org/prop2', '"val"'),
+      ]);
+    });
+
+    it('should forward error events', async () => {
+      const stream = new PassThrough();
+      stream._read = () => stream.emit('error', new Error('my error'));
+      return expect(arrayifyStream(parser.import(stream))).rejects.toThrow(new Error('my error'));
     });
   });
 });
