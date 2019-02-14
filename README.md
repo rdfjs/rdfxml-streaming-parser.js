@@ -63,7 +63,6 @@ myParser.write(`<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:ex="http://example.org/stuff/1.0/"
          xml:base="http://example.org/triples/">`);
 myParser.write(`<rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">`);
-myParser.write(`<rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">`);
 myParser.write(`<ex:prop />`);
 myParser.write(`</rdf:Description>`);
 myParser.write(`</rdf:RDF>`);
