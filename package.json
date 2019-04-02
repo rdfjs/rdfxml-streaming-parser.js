@@ -1,6 +1,6 @@
 {
   "name": "rdfxml-streaming-parser",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Streaming RDF/XML parser",
   "keywords": [
     "rdf/xml",
@@ -55,7 +55,9 @@
         "tsConfig": "test/tsconfig.json"
       }
     },
-    "setupFilesAfterEnv": [ "jest-rdf" ],
+    "setupFilesAfterEnv": [
+      "jest-rdf"
+    ],
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },

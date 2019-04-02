@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.2.1"></a>
+## [v1.2.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.0...v1.2.1) - 2019-04-02
+
+### Fixed
+* [Fix doctype entities not being considered in base IRIs, Closes #10](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/3cda7e18839200e1130af06de23128dd56f24e41)
+
 <a name="v1.2.0"></a>
 ## [v1.2.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.1.0...v1.2.0) - 2019-01-28
 
