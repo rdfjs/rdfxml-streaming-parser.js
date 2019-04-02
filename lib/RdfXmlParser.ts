@@ -1,6 +1,6 @@
 import * as RDF from "rdf-js";
 import {resolve} from "relative-to-absolute-iri";
-import {createStream, SAXStream, Tag} from "sax";
+import {createStream, SAXParser, SAXStream, Tag} from "sax";
 import {PassThrough, Transform, TransformCallback} from "stream";
 import EventEmitter = NodeJS.EventEmitter;
 
@@ -144,6 +144,28 @@ export class RdfXmlParser extends Transform {
       uri = defaultNamespace || '';
     }
     return { prefix, local, uri };
+  }
+
+  /**
+   * Expand the given term based on the DOCTYPE entities.
+   * @param {string} term A term.
+   * @param {SAXParser} parser A SAX parser that has DOCTYPE entities.
+   * @return {string} The expanded or same term.
+   */
+  public static expandDoctypeEntity(term: string, parser: SAXParser): string {
+    if (term[0] === '&') {
+      const prefixEndPos = term.indexOf(';');
+      if (prefixEndPos > 0) {
+        const prefix = term.substr(1, prefixEndPos - 1);
+        const entities = parser.ENTITIES;
+        const expandedPrefix = entities[prefix];
+        if (expandedPrefix) {
+          const suffix = term.substr(prefixEndPos);
+          term = expandedPrefix + suffix;
+        }
+      }
+    }
+    return term;
   }
 
   /**
@@ -340,7 +362,8 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           activeTag.language = attributeValue === '' ? null : attributeValue.toLowerCase();
           continue;
         } else if (attributeKeyExpanded.local === 'base') {
-          activeTag.baseIRI = attributeValue;
+          // SAX Parser does not expand xml:base, based on DOCTYPE, so we have to do it manually
+          activeTag.baseIRI = RdfXmlParser.expandDoctypeEntity(attributeValue, (<any> this.saxStream)._parser);
           continue;
         }
       }
@@ -707,7 +730,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
    * @param {string} doctype The read doctype.
    */
   protected onDoctype(doctype: string) {
-    doctype.replace(/<!ENTITY ([^ ]+) "([^"]+)">/g, (match, prefix, uri) => {
+    doctype.replace(/<!ENTITY ([^ ]+) "([^"]+)" *>/g, (match, prefix, uri) => {
       (<any> this.saxStream)._parser.ENTITIES[prefix] = uri;
       return '';
     });

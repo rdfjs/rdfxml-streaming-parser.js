@@ -1030,6 +1030,53 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      it('DOCTYPE and ENTITY\'s in xml:base', async () => {
+        return expect(await parse(parser, `<!DOCTYPE rdf:RDF [
+    <!ENTITY ssnx "http://purl.oclc.org/NET/ssnx/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+]>
+
+<rdf:RDF xmlns="&ssnx;ssn#"
+     xml:base="&ssnx;ssn"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="">
+        <rdfs:comment rdf:datatype="&xsd;string">ABC</rdfs:comment>
+    </owl:Ontology>
+</rdf:RDF>`))
+          .toBeRdfIsomorphic([
+            quad('http://purl.oclc.org/NET/ssnx/ssn',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#Ontology'),
+            quad('http://purl.oclc.org/NET/ssnx/ssn',
+              'http://www.w3.org/2000/01/rdf-schema#comment', '"ABC"'),
+          ]);
+      });
+
+      it('DOCTYPE and ENTITY\'s in xmlns prefixes', async () => {
+        return expect(await parse(parser, `<!DOCTYPE rdf:RDF [
+    <!ENTITY ssnx "http://purl.oclc.org/NET/ssnx/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY w3 "http://www.w3.org/1999/02/" >
+]>
+
+<rdf:RDF xmlns="&ssnx;ssn#"
+     xml:base="http://purl.oclc.org/NET/ssnx/ssn"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="&w3;22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="">
+        <rdfs:comment rdf:datatype="&xsd;string">ABC</rdfs:comment>
+    </owl:Ontology>
+</rdf:RDF>`))
+          .toBeRdfIsomorphic([
+            quad('http://purl.oclc.org/NET/ssnx/ssn',
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#Ontology'),
+            quad('http://purl.oclc.org/NET/ssnx/ssn',
+              'http://www.w3.org/2000/01/rdf-schema#comment', '"ABC"'),
+          ]);
+      });
+
       // 2.5
       it('an rdf:Description without rdf:about and with an attribute', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
