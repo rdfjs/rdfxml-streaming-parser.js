@@ -6,6 +6,9 @@ import EventEmitter = NodeJS.EventEmitter;
 
 export class RdfXmlParser extends Transform {
 
+  // Regex for valid IRIs
+  public static readonly IRI_REGEX: RegExp = /^([A-Za-z][A-Za-z0-9+-.]*|_):[^ "<>{}|\\\[\]`]*$/;
+
   public static readonly MIME_TYPE = 'application/rdf+xml';
 
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
@@ -169,6 +172,15 @@ export class RdfXmlParser extends Transform {
   }
 
   /**
+   * Check if the given IRI is valid.
+   * @param {string} iri A potential IRI.
+   * @return {boolean} If the given IRI is valid.
+   */
+  public static isValidIri(iri: string): boolean {
+    return RdfXmlParser.IRI_REGEX.test(iri);
+  }
+
+  /**
    * Parses the given text stream into a quad stream.
    * @param {NodeJS.EventEmitter} stream A text stream.
    * @return {NodeJS.EventEmitter} A quad stream.
@@ -197,7 +209,23 @@ export class RdfXmlParser extends Transform {
    * @return {NamedNode} an IRI.
    */
   public valueToUri(value: string, activeTag: IActiveTag): RDF.NamedNode {
-    return this.dataFactory.namedNode(resolve(value, activeTag.baseIRI));
+    return this.uriToNamedNode(resolve(value, activeTag.baseIRI));
+  }
+
+  /**
+   * Convert the given value URI string to a named node.
+   *
+   * This will emit an error if the URI is invalid.
+   *
+   * @param {string} uri A URI string.
+   * @return {NamedNode} a named node.
+   */
+  public uriToNamedNode(uri: string): RDF.NamedNode {
+    // Validate URI
+    if (!RdfXmlParser.isValidIri(uri)) {
+      this.emit('error', new Error(`Invalid URI: ${uri}`));
+    }
+    return this.dataFactory.namedNode(uri);
   }
 
   /**
@@ -371,7 +399,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
       // Interpret attributes at this point as properties on this node,
       // but we ignore attributes that have no prefix or known expanded URI
       if (attributeKeyExpanded.prefix !== 'xml' && attributeKeyExpanded.uri) {
-        predicates.push(this.dataFactory.namedNode(attributeKeyExpanded.uri + attributeKeyExpanded.local));
+        predicates.push(this.uriToNamedNode(attributeKeyExpanded.uri + attributeKeyExpanded.local));
         objects.push(attributeValue);
       }
     }
@@ -392,7 +420,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
 
     // Emit the type if we're at a typed node
     if (typedNode) {
-      const type: RDF.NamedNode = this.dataFactory.namedNode(tagExpanded.uri + tagExpanded.local);
+      const type: RDF.NamedNode = this.uriToNamedNode(tagExpanded.uri + tagExpanded.local);
       this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
         type, parentTag ? parentTag.reifiedStatementId : null);
     }
@@ -441,7 +469,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
       // Emit the rdf:type as named node instead of literal
       if (explicitType) {
         this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-          this.dataFactory.namedNode(explicitType), null);
+          this.uriToNamedNode(explicitType), null);
       }
     }
   }
@@ -462,9 +490,9 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
       if (!parentTag.listItemCounter) {
         parentTag.listItemCounter = 1;
       }
-      activeTag.predicate = this.dataFactory.namedNode(tagExpanded.uri + '_' + parentTag.listItemCounter++);
+      activeTag.predicate = this.uriToNamedNode(tagExpanded.uri + '_' + parentTag.listItemCounter++);
     } else {
-      activeTag.predicate = this.dataFactory.namedNode(tagExpanded.uri + tagExpanded.local);
+      activeTag.predicate = this.uriToNamedNode(tagExpanded.uri + tagExpanded.local);
     }
 
     // Check forbidden property element names
@@ -600,7 +628,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
         }
         activeTag.hadChildren = true;
         attributedProperty = true;
-        predicates.push(this.dataFactory.namedNode(
+        predicates.push(this.uriToNamedNode(
           propertyAttributeKeyExpanded.uri + propertyAttributeKeyExpanded.local));
         objects.push(this.dataFactory.literal(propertyAttributeValue,
           activeTag.datatype || activeTag.language));

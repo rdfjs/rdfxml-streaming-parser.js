@@ -253,6 +253,40 @@ describe('RdfXmlParser', () => {
     });
   });
 
+  describe('#isValidIri', () => {
+    it('should be false for null', async () => {
+      expect(RdfXmlParser.isValidIri(null)).toBeFalsy();
+    });
+
+    it('should be false for an empty string', async () => {
+      expect(RdfXmlParser.isValidIri('')).toBeFalsy();
+    });
+
+    it('should be false for an abc', async () => {
+      expect(RdfXmlParser.isValidIri('abc')).toBeFalsy();
+    });
+
+    it('should be true for an abc:def', async () => {
+      expect(RdfXmlParser.isValidIri('abc:def')).toBeTruthy();
+    });
+
+    it('should be true for an http://google.com', async () => {
+      expect(RdfXmlParser.isValidIri('http://google.com')).toBeTruthy();
+    });
+
+    it('should be false for an http://google.com<', async () => {
+      expect(RdfXmlParser.isValidIri('http://google.com<')).toBeFalsy();
+    });
+
+    it('should be false for an http://google .com', async () => {
+      expect(RdfXmlParser.isValidIri('http://google .com')).toBeFalsy();
+    });
+
+    it('should be false for an invalid scheme', async () => {
+      expect(RdfXmlParser.isValidIri('%http://google.com')).toBeFalsy();
+    });
+  });
+
   describe('a default instance', () => {
 
     let parser;
@@ -287,9 +321,25 @@ abc`)).rejects.toBeTruthy();
           .toEqual(DataFactory.namedNode('http://base.org/'));
       });
 
-      it('create a named node from a relative URI when no baseIRI is given', () => {
-        expect(parser.valueToUri('abc', {}))
-          .toEqual(DataFactory.namedNode('abc'));
+      it('create error on a relative URI when no baseIRI is given', () => {
+        const errorCb = jest.fn();
+        parser.on('error', errorCb);
+        parser.valueToUri('abc', {});
+        expect(errorCb).toHaveBeenCalledWith(new Error('Invalid URI: abc'));
+      });
+
+      it('create error on a URI with an invalid scheme', () => {
+        const errorCb = jest.fn();
+        parser.on('error', errorCb);
+        parser.valueToUri('%https://example.com/', {});
+        expect(errorCb).toHaveBeenCalledWith(new Error('Invalid URI: %https://example.com/'));
+      });
+
+      it('create error on a URI with an invalid character', () => {
+        const errorCb = jest.fn();
+        parser.on('error', errorCb);
+        parser.valueToUri('https://example.com/<', {});
+        expect(errorCb).toHaveBeenCalledWith(new Error('Invalid URI: https://example.com/<'));
       });
 
       it('create a named node from a relative URI when a baseIRI is given', () => {
@@ -416,7 +466,8 @@ abc`)).rejects.toBeTruthy();
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:ex="http://example.org/stuff/1.0/">
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://base.org">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:ID="abc" />
 </rdf:RDF>`)).rejects.toEqual(
           new Error('Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
@@ -440,12 +491,13 @@ abc`)).rejects.toBeTruthy();
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:ex="http://example.org/stuff/1.0/">
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://base.org">
   <rdf:Description rdf:ID="abc" />
   <rdf:Description rdf:ID="def" />
   <rdf:Description rdf:ID="abc" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurrences of rdf:ID=\'#abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'http://base.org#abc\'.'));
       });
 
       // 2.17
@@ -453,13 +505,14 @@ abc`)).rejects.toBeTruthy();
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:ex="http://example.org/stuff/1.0/">
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://base.org">
   <rdf:Description>
     <ex:prop rdf:ID="abc">1</ex:prop>
     <ex:prop rdf:ID="abc">2</ex:prop>
   <rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurrences of rdf:ID=\'#abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'http://base.org#abc\'.'));
       });
 
       // 2.10, 2.17
@@ -467,12 +520,25 @@ abc`)).rejects.toBeTruthy();
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:ex="http://example.org/stuff/1.0/">
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://base.org">
   <rdf:Description rdf:ID="abc">
     <ex:prop rdf:ID="abc">1</ex:prop>
   <rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Found multiple occurrences of rdf:ID=\'#abc\'.'));
+          new Error('Found multiple occurrences of rdf:ID=\'http://base.org#abc\'.'));
+      });
+
+      it('when rdf:ID is used without base', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:ID="abc">
+    <ex:prop>1</ex:prop>
+  <rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Invalid URI: #abc'));
       });
 
       // 2.10
@@ -637,7 +703,8 @@ abc`)).rejects.toBeTruthy();
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:ex="http://example.org/stuff/1.0/">
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://base.org/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
     <ex:editor rdf:datatype="xyy" dc:title="abc" />
   </rdf:Description>
@@ -889,7 +956,8 @@ abc`)).rejects.toBeTruthy();
       it('on rdf:aboutEach', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:eg="http://example.org/">
+         xmlns:eg="http://example.org/"
+         xml:base="http://base.org/">
 
   <rdf:Bag rdf:ID="node">
     <rdf:li rdf:resource="http://example.org/node2"/>
