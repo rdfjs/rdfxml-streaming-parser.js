@@ -321,25 +321,19 @@ abc`)).rejects.toBeTruthy();
           .toEqual(DataFactory.namedNode('http://base.org/'));
       });
 
-      it('create error on a relative URI when no baseIRI is given', () => {
-        const errorCb = jest.fn();
-        parser.on('error', errorCb);
-        parser.valueToUri('abc', {});
-        expect(errorCb).toHaveBeenCalledWith(new Error('Invalid URI: abc'));
+      it('throw an error on a relative URI when no baseIRI is given', () => {
+        expect(() => parser.valueToUri('abc', {}))
+          .toThrow(new Error('Invalid URI: abc'));
       });
 
       it('create error on a URI with an invalid scheme', () => {
-        const errorCb = jest.fn();
-        parser.on('error', errorCb);
-        parser.valueToUri('%https://example.com/', {});
-        expect(errorCb).toHaveBeenCalledWith(new Error('Invalid URI: %https://example.com/'));
+        expect(() => parser.valueToUri('%https://example.com/', {}))
+          .toThrow(new Error('Invalid URI: %https://example.com/'));
       });
 
       it('create error on a URI with an invalid character', () => {
-        const errorCb = jest.fn();
-        parser.on('error', errorCb);
-        parser.valueToUri('https://example.com/<', {});
-        expect(errorCb).toHaveBeenCalledWith(new Error('Invalid URI: https://example.com/<'));
+        expect(() => parser.valueToUri('https://example.com/<', {}))
+          .toThrow(new Error('Invalid URI: https://example.com/<'));
       });
 
       it('create a named node from a relative URI when a baseIRI is given', () => {

@@ -200,7 +200,11 @@ export class RdfXmlParser extends Transform {
   }
 
   public _transform(chunk: any, encoding: string, callback: TransformCallback) {
-    this.saxStream.write(chunk, encoding);
+    try {
+      this.saxStream.write(chunk, encoding);
+    } catch (e) {
+      return callback(e);
+    }
     callback();
   }
 
@@ -220,7 +224,7 @@ export class RdfXmlParser extends Transform {
   /**
    * Convert the given value URI string to a named node.
    *
-   * This will emit an error if the URI is invalid.
+   * This throw an error if the URI is invalid.
    *
    * @param {string} uri A URI string.
    * @return {NamedNode} a named node.
@@ -228,20 +232,20 @@ export class RdfXmlParser extends Transform {
   public uriToNamedNode(uri: string): RDF.NamedNode {
     // Validate URI
     if (!RdfXmlParser.isValidIri(uri)) {
-      this.emit('error', new Error(`Invalid URI: ${uri}`));
+      throw new Error(`Invalid URI: ${uri}`);
     }
     return this.dataFactory.namedNode(uri);
   }
 
   /**
    * Validate the given value as an NCName: https://www.w3.org/TR/xml-names/#NT-NCName
-   * If it is invalid, an error will be emitted.
+   * If it is invalid, an error will thrown emitted.
    * @param {string} value A value.
    */
   public validateNcname(value: string) {
     // Validate term as an NCName: https://www.w3.org/TR/xml-names/#NT-NCName
     if (!RdfXmlParser.NCNAME_MATCHER.test(value)) {
-      this.emit('error', new Error(`Not a valid NCName: ${value}`));
+      throw new Error(`Not a valid NCName: ${value}`);
     }
   }
 
@@ -258,55 +262,51 @@ export class RdfXmlParser extends Transform {
    * @param {QualifiedTag} tag A SAX tag.
    */
   protected onTag(tag: Tag) {
-    try {
-      // Get parent tag
-      const parentTag: IActiveTag = this.activeTagStack.length
-        ? this.activeTagStack[this.activeTagStack.length - 1] : null;
-      let currentParseType = ParseType.RESOURCE;
-      if (parentTag) {
-        parentTag.hadChildren = true;
-        currentParseType = parentTag.childrenParseType;
+    // Get parent tag
+    const parentTag: IActiveTag = this.activeTagStack.length
+      ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+    let currentParseType = ParseType.RESOURCE;
+    if (parentTag) {
+      parentTag.hadChildren = true;
+      currentParseType = parentTag.childrenParseType;
+    }
+
+    // Check if this tag needs to be converted to a string
+    if (parentTag && parentTag.childrenStringTags) {
+      // Convert this tag to a string
+      const tagName: string = tag.name;
+      let attributes: string = '';
+      for (const attributeKey in tag.attributes) {
+        attributes += ` ${attributeKey}="${tag.attributes[attributeKey]}"`;
       }
+      const tagContents: string = `${tagName}${attributes}`;
+      const tagString: string = `<${tagContents}>`;
+      parentTag.childrenStringTags.push(tagString);
 
-      // Check if this tag needs to be converted to a string
-      if (parentTag && parentTag.childrenStringTags) {
-        // Convert this tag to a string
-        const tagName: string = tag.name;
-        let attributes: string = '';
-        for (const attributeKey in tag.attributes) {
-          attributes += ` ${attributeKey}="${tag.attributes[attributeKey]}"`;
-        }
-        const tagContents: string = `${tagName}${attributes}`;
-        const tagString: string = `<${tagContents}>`;
-        parentTag.childrenStringTags.push(tagString);
+      // Inherit the array, so that deeper tags are appended to this same array
+      const stringActiveTag: IActiveTag = {childrenStringTags: parentTag.childrenStringTags};
+      stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
+      this.activeTagStack.push(stringActiveTag);
 
-        // Inherit the array, so that deeper tags are appended to this same array
-        const stringActiveTag: IActiveTag = {childrenStringTags: parentTag.childrenStringTags};
-        stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
-        this.activeTagStack.push(stringActiveTag);
+      // Halt any further processing
+      return;
+    }
 
-        // Halt any further processing
-        return;
-      }
+    const activeTag: IActiveTag = {};
+    if (parentTag) {
+      // Inherit language scope and baseIRI from parent
+      activeTag.language = parentTag.language;
+      activeTag.baseIRI = parentTag.baseIRI;
+    } else {
+      activeTag.baseIRI = this.baseIRI;
+    }
+    this.activeTagStack.push(activeTag);
+    activeTag.ns = RdfXmlParser.parseNamespace(tag, parentTag);
 
-      const activeTag: IActiveTag = {};
-      if (parentTag) {
-        // Inherit language scope and baseIRI from parent
-        activeTag.language = parentTag.language;
-        activeTag.baseIRI = parentTag.baseIRI;
-      } else {
-        activeTag.baseIRI = this.baseIRI;
-      }
-      this.activeTagStack.push(activeTag);
-      activeTag.ns = RdfXmlParser.parseNamespace(tag, parentTag);
-
-      if (currentParseType === ParseType.RESOURCE) {
-        this.onTagResource(tag, activeTag, parentTag, !parentTag);
-      } else { // currentParseType === ParseType.PROPERTY
-        this.onTagProperty(tag, activeTag, parentTag);
-      }
-    } catch (e) {
-      this.emit('error', e);
+    if (currentParseType === ParseType.RESOURCE) {
+      this.onTagResource(tag, activeTag, parentTag, !parentTag);
+    } else { // currentParseType === ParseType.PROPERTY
+      this.onTagProperty(tag, activeTag, parentTag);
     }
   }
 
@@ -326,7 +326,7 @@ export class RdfXmlParser extends Transform {
     if (tagExpanded.uri === RdfXmlParser.RDF) {
       // Check forbidden property element names
       if (!rootTag && RdfXmlParser.FORBIDDEN_NODE_ELEMENTS.indexOf(tagExpanded.local) >= 0) {
-        this.emit('error', new Error(`Illegal node element name: ${tagExpanded.local}`));
+        throw new Error(`Illegal node element name: ${tagExpanded.local}`);
       }
 
       switch (tagExpanded.local) {
@@ -354,15 +354,15 @@ export class RdfXmlParser extends Transform {
         switch (attributeKeyExpanded.local) {
         case 'about':
           if (activeSubjectValue) {
-            this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
-while ${attributeValue} and ${activeSubjectValue} where found.`));
+            throw new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+while ${attributeValue} and ${activeSubjectValue} where found.`);
           }
           activeSubjectValue = attributeValue;
           continue;
         case 'ID':
           if (activeSubjectValue) {
-            this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
-while ${attributeValue} and ${activeSubjectValue} where found.`));
+            throw new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+while ${attributeValue} and ${activeSubjectValue} where found.`);
           }
           this.validateNcname(attributeValue);
           activeSubjectValue = '#' + attributeValue;
@@ -370,29 +370,25 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           continue;
         case 'nodeID':
           if (activeSubjectValue) {
-            this.emit('error', new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
-while ${attributeValue} and ${activeSubjectValue} where found.`));
+            throw new Error(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+while ${attributeValue} and ${activeSubjectValue} where found.`);
           }
           this.validateNcname(attributeValue);
           activeSubjectValue = attributeValue;
           subjectValueBlank = true;
           continue;
         case 'bagID':
-          this.emit('error', new Error(`rdf:bagID is not supported.`));
-          continue;
+          throw new Error(`rdf:bagID is not supported.`);
         case 'type':
           // Emit the rdf:type later as named node instead of the default literal
           explicitType = attributeValue;
           continue;
         case 'aboutEach':
-          this.emit('error', new Error(`rdf:aboutEach is not supported.`));
-          continue;
+          throw new Error(`rdf:aboutEach is not supported.`);
         case 'aboutEachPrefix':
-          this.emit('error', new Error(`rdf:aboutEachPrefix is not supported.`));
-          continue;
+          throw new Error(`rdf:aboutEachPrefix is not supported.`);
         case 'li':
-          this.emit('error', new Error(`rdf:li on node elements are not supported.`));
-          continue;
+          throw new Error(`rdf:li on node elements are not supported.`);
         }
       } else if (attributeKeyExpanded.uri === RdfXmlParser.XML) {
         if (attributeKeyExpanded.local === 'lang') {
@@ -507,7 +503,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
     // Check forbidden property element names
     if (tagExpanded.uri === RdfXmlParser.RDF
       && RdfXmlParser.FORBIDDEN_PROPERTY_ELEMENTS.indexOf(tagExpanded.local) >= 0) {
-      this.emit('error', new Error(`Illegal property element name: ${tagExpanded.local}`));
+      throw new Error(`Illegal property element name: ${tagExpanded.local}`);
     }
 
     activeTag.predicateSubPredicates = [];
@@ -529,13 +525,12 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
         switch (propertyAttributeKeyExpanded.local) {
         case 'resource':
           if (activeSubSubjectValue) {
-            this.emit('error', new Error(`Found both rdf:resource (${propertyAttributeValue
-              }) and rdf:nodeID (${activeSubSubjectValue}).`));
+            throw new Error(`Found both rdf:resource (${propertyAttributeValue
+              }) and rdf:nodeID (${activeSubSubjectValue}).`);
           }
           if (parseType) {
-            this.emit('error',
-              new Error(`rdf:parseType is not allowed on property elements with rdf:resource (${
-                propertyAttributeValue})`));
+            throw new Error(`rdf:parseType is not allowed on property elements with rdf:resource (${
+                propertyAttributeValue})`);
           }
           activeTag.hadChildren = true;
           activeSubSubjectValue = propertyAttributeValue;
@@ -543,29 +538,24 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           continue;
         case 'datatype':
           if (attributedProperty) {
-            this.emit('error', new Error(
-              `Found both non-rdf:* property attributes and rdf:datatype (${propertyAttributeValue}).`));
+            throw new Error(`Found both non-rdf:* property attributes and rdf:datatype (${propertyAttributeValue}).`);
           }
           if (parseType) {
-            this.emit('error',
-              new Error(`rdf:parseType is not allowed on property elements with rdf:datatype (${
-                propertyAttributeValue})`));
+            throw new Error(`rdf:parseType is not allowed on property elements with rdf:datatype (${
+              propertyAttributeValue})`);
           }
           activeTag.datatype = this.valueToUri(propertyAttributeValue, activeTag);
           continue;
         case 'nodeID':
           if (attributedProperty) {
-            this.emit('error', new Error(
-              `Found both non-rdf:* property attributes and rdf:nodeID (${propertyAttributeValue}).`));
+            throw new Error(`Found both non-rdf:* property attributes and rdf:nodeID (${propertyAttributeValue}).`);
           }
           if (activeTag.hadChildren) {
-            this.emit('error', new Error(
-              `Found both rdf:resource and rdf:nodeID (${propertyAttributeValue}).`));
+            throw new Error(`Found both rdf:resource and rdf:nodeID (${propertyAttributeValue}).`);
           }
           if (parseType) {
-            this.emit('error',
-              new Error(`rdf:parseType is not allowed on property elements with rdf:nodeID (${
-                propertyAttributeValue})`));
+            throw new Error(`rdf:parseType is not allowed on property elements with rdf:nodeID (${
+              propertyAttributeValue})`);
           }
           this.validateNcname(propertyAttributeValue);
           activeTag.hadChildren = true;
@@ -573,23 +563,19 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
           subSubjectValueBlank = true;
           continue;
         case 'bagID':
-          this.emit('error', new Error(`rdf:bagID is not supported.`));
-          continue;
+          throw new Error(`rdf:bagID is not supported.`);
         case 'parseType':
           // Validation
           if (attributedProperty) {
-            this.emit('error', new Error(
-              `rdf:parseType is not allowed when non-rdf:* property attributes are present`));
+            throw new Error(`rdf:parseType is not allowed when non-rdf:* property attributes are present`);
           }
           if (activeTag.datatype) {
-            this.emit('error',
-              new Error(`rdf:parseType is not allowed on property elements with rdf:datatype (${
-                activeTag.datatype.value})`));
+            throw new Error(`rdf:parseType is not allowed on property elements with rdf:datatype (${
+              activeTag.datatype.value})`);
           }
           if (activeSubSubjectValue) {
-            this.emit('error', new Error(
-              `rdf:parseType is not allowed on property elements with rdf:nodeID or rdf:resource (${
-                activeSubSubjectValue})`));
+            throw new Error(`rdf:parseType is not allowed on property elements with rdf:nodeID or rdf:resource (${
+              activeSubSubjectValue})`);
           }
 
           if (propertyAttributeValue === 'Resource') {
@@ -632,8 +618,8 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
       // but we ignore attributes that have no prefix or known expanded URI
       if (propertyAttributeKeyExpanded.prefix !== 'xml' && propertyAttributeKeyExpanded.uri) {
         if (parseType || activeTag.datatype) {
-          this.emit('error', new Error(
-            `Found illegal rdf:* properties on property element with attribute: ${propertyAttributeValue}`));
+          throw new Error(`Found illegal rdf:* properties on property element with attribute: ${
+            propertyAttributeValue}`);
         }
         activeTag.hadChildren = true;
         attributedProperty = true;
@@ -701,7 +687,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`));
    */
   protected claimNodeId(term: RDF.Term) {
     if (this.nodeIds[term.value]) {
-      this.emit('error', new Error(`Found multiple occurrences of rdf:ID='${term.value}'.`));
+      throw new Error(`Found multiple occurrences of rdf:ID='${term.value}'.`);
     }
     this.nodeIds[term.value] = true;
   }
