@@ -143,6 +143,11 @@ export class RdfXmlParser extends Transform {
     }
 
     if (!uri) {
+      // Error on unbound prefix
+      if (prefix && prefix !== 'xmlns') {
+        throw new Error(`The prefix '${prefix}' in term '${term}' was not bound.`);
+      }
+
       // Fallback to default namespace if no match was found
       uri = defaultNamespace || '';
     }
@@ -253,51 +258,55 @@ export class RdfXmlParser extends Transform {
    * @param {QualifiedTag} tag A SAX tag.
    */
   protected onTag(tag: Tag) {
-    // Get parent tag
-    const parentTag: IActiveTag = this.activeTagStack.length
-      ? this.activeTagStack[this.activeTagStack.length - 1] : null;
-    let currentParseType = ParseType.RESOURCE;
-    if (parentTag) {
-      parentTag.hadChildren = true;
-      currentParseType = parentTag.childrenParseType;
-    }
-
-    // Check if this tag needs to be converted to a string
-    if (parentTag && parentTag.childrenStringTags) {
-      // Convert this tag to a string
-      const tagName: string = tag.name;
-      let attributes: string = '';
-      for (const attributeKey in tag.attributes) {
-        attributes += ` ${attributeKey}="${tag.attributes[attributeKey]}"`;
+    try {
+      // Get parent tag
+      const parentTag: IActiveTag = this.activeTagStack.length
+        ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+      let currentParseType = ParseType.RESOURCE;
+      if (parentTag) {
+        parentTag.hadChildren = true;
+        currentParseType = parentTag.childrenParseType;
       }
-      const tagContents: string = `${tagName}${attributes}`;
-      const tagString: string = `<${tagContents}>`;
-      parentTag.childrenStringTags.push(tagString);
 
-      // Inherit the array, so that deeper tags are appended to this same array
-      const stringActiveTag: IActiveTag = { childrenStringTags: parentTag.childrenStringTags };
-      stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
-      this.activeTagStack.push(stringActiveTag);
+      // Check if this tag needs to be converted to a string
+      if (parentTag && parentTag.childrenStringTags) {
+        // Convert this tag to a string
+        const tagName: string = tag.name;
+        let attributes: string = '';
+        for (const attributeKey in tag.attributes) {
+          attributes += ` ${attributeKey}="${tag.attributes[attributeKey]}"`;
+        }
+        const tagContents: string = `${tagName}${attributes}`;
+        const tagString: string = `<${tagContents}>`;
+        parentTag.childrenStringTags.push(tagString);
 
-      // Halt any further processing
-      return;
-    }
+        // Inherit the array, so that deeper tags are appended to this same array
+        const stringActiveTag: IActiveTag = {childrenStringTags: parentTag.childrenStringTags};
+        stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
+        this.activeTagStack.push(stringActiveTag);
 
-    const activeTag: IActiveTag = {};
-    if (parentTag) {
-      // Inherit language scope and baseIRI from parent
-      activeTag.language = parentTag.language;
-      activeTag.baseIRI = parentTag.baseIRI;
-    } else {
-      activeTag.baseIRI = this.baseIRI;
-    }
-    this.activeTagStack.push(activeTag);
-    activeTag.ns = RdfXmlParser.parseNamespace(tag, parentTag);
+        // Halt any further processing
+        return;
+      }
 
-    if (currentParseType === ParseType.RESOURCE) {
-      this.onTagResource(tag, activeTag, parentTag, !parentTag);
-    } else { // currentParseType === ParseType.PROPERTY
-      this.onTagProperty(tag, activeTag, parentTag);
+      const activeTag: IActiveTag = {};
+      if (parentTag) {
+        // Inherit language scope and baseIRI from parent
+        activeTag.language = parentTag.language;
+        activeTag.baseIRI = parentTag.baseIRI;
+      } else {
+        activeTag.baseIRI = this.baseIRI;
+      }
+      this.activeTagStack.push(activeTag);
+      activeTag.ns = RdfXmlParser.parseNamespace(tag, parentTag);
+
+      if (currentParseType === ParseType.RESOURCE) {
+        this.onTagResource(tag, activeTag, parentTag, !parentTag);
+      } else { // currentParseType === ParseType.PROPERTY
+        this.onTagProperty(tag, activeTag, parentTag);
+      }
+    } catch (e) {
+      this.emit('error', e);
     }
   }
 

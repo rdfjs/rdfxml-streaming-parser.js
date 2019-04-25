@@ -226,16 +226,16 @@ describe('RdfXmlParser', () => {
         .toEqual({ local: 'abc', prefix: 'x', uri: 'y' });
     });
 
-    it('should expand an unknown prefix to the default ns', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('z:abc', ns))
-        .toEqual({ local: 'abc', prefix: 'z', uri: 'default' });
+    it('should error on an unknown prefix with default ns', () => {
+      return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', ns))
+        .toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
     });
 
-    it('should expand an unknown prefix without default ns', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('z:abc', [
+    it('should error on an unknown prefix without default ns', () => {
+      return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', [
         { x: 'y' },
         { a: 'b' },
-      ])).toEqual({ local: 'abc', prefix: 'z', uri: '' });
+      ])).toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
     });
 
     it('should expand no prefix to the default ns', () => {
@@ -243,13 +243,13 @@ describe('RdfXmlParser', () => {
         .toEqual({ local: 'abc', prefix: '', uri: 'default' });
     });
 
-    it('should expand an unknown prefix to the first default ns', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('z:abc', [
+    it('should expand no prefix to the first default ns', () => {
+      return expect(RdfXmlParser.expandPrefixedTerm('abc', [
         { '': 'default' },
         { x: 'y' },
         { '': 'firstdefault' },
         { a: 'b' },
-      ])).toEqual({ local: 'abc', prefix: 'z', uri: 'firstdefault' });
+      ])).toEqual({ local: 'abc', prefix: '', uri: 'firstdefault' });
     });
   });
 
@@ -995,6 +995,17 @@ abc`)).rejects.toBeTruthy();
 
   <foo:bar rdf:li="1"/>
 </rdf:RDF>`)).rejects.toEqual(new Error('rdf:li on node elements are not supported.'));
+      });
+
+      it('on unknown prefixes in property tags', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop>1</ex:prop>
+  <rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('The prefix \'ex\' in term \'ex:prop\' was not bound.'));
       });
     });
 
