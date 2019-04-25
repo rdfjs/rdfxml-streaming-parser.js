@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.2.2"></a>
+## [v1.2.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.1...v1.2.2) - 2019-04-25
+
+### Fixed
+* [Error on unbound prefixes, Closes #12](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/0931aab22c505cbfdd7ae89fd7fd5065a1cb3555)
+* [Validate all created URIs, Closes #11](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/75588df39b49d6945001d381af76d38ba9add768)
+
 <a name="v1.2.1"></a>
 ## [v1.2.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.0...v1.2.1) - 2019-04-02
 
