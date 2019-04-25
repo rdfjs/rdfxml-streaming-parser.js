@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.2.3"></a>
+## [v1.2.3](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.2...v1.2.3) - 2019-04-25
+
+### Fixed
+* [Fix stream transformation continuing after first error, #12](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/acc805b1b963067eae8e7583bc6debe4ec198e3e)
+
 <a name="v1.2.2"></a>
 ## [v1.2.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.1...v1.2.2) - 2019-04-25
 
