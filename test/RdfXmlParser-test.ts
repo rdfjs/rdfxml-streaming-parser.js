@@ -377,7 +377,7 @@ abc`)).rejects.toBeTruthy();
 
       it('create a named node from the baseIRI if something other than a / follows the :', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http:a' }))
-          .toEqual(DataFactory.namedNode('http:a/abc'));
+          .toEqual(DataFactory.namedNode('http:abc'));
       });
 
       it('create a named node from the baseIRI scheme if nothing follows the :', () => {
