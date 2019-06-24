@@ -909,6 +909,18 @@ abc`)).rejects.toBeTruthy();
       });
 
       // Illegal XML name production
+      it('on rdf:nodeID with illegal blank node on a resource node element', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:ns1="x:" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+  <rdf:Description rdf:about="http://example.org/">
+    <ns1:b rdf:resource="_:bnode"/>
+  </rdf:Description>
+
+</rdf:RDF>`)).rejects.toEqual(new Error('Invalid URI: _:bnode'));
+      });
+
+      // Illegal XML name production
       it('on rdf:ID with illegal XML Name', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

@@ -7,7 +7,7 @@ import EventEmitter = NodeJS.EventEmitter;
 export class RdfXmlParser extends Transform {
 
   // Regex for valid IRIs
-  public static readonly IRI_REGEX: RegExp = /^([A-Za-z][A-Za-z0-9+-.]*|_):[^ "<>{}|\\\[\]`]*$/;
+  public static readonly IRI_REGEX: RegExp = /^([A-Za-z][A-Za-z0-9+-.]*):[^ "<>{}|\\\[\]`]*$/;
 
   public static readonly MIME_TYPE = 'application/rdf+xml';
 
