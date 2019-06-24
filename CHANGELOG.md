@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.2.4"></a>
+## [v1.2.4](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.3...v1.2.4) - 2019-06-24
+
+### Fixed
+* [Fix _: being accepted as valid IRIs, Closes #15](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/838bfe8834bca20d60297f79f0aa8ced981d111f)
+
 <a name="v1.2.3"></a>
 ## [v1.2.3](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.2...v1.2.3) - 2019-04-25
 
