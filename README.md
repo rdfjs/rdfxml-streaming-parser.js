@@ -93,6 +93,7 @@ Optionally, the following parameters can be set in the `RdfXmlParser` constructo
 * `baseIRI`: An initital default base IRI. _(Default: `''`)_
 * `defaultGraph`: The default graph for constructing [quads](http://rdf.js.org/#dom-datafactory-quad). _(Default: `defaultGraph()`)_
 * `strict`: If the internal SAX parser should parse XML in strict mode, and error if it is invalid. _(Default: `false`)_
+* `trackPosition`: If the internal position (line, column) should be tracked an emitted in error messages. _(Default: `false`)_
 
 
 ```javascript
@@ -101,6 +102,7 @@ new RdfXmlParser({
   baseIRI: 'http://example.org/',
   defaultGraph: namedNode('http://example.org/graph'),
   strict: true,
+  trackPosition: true,
 });
 ```
 

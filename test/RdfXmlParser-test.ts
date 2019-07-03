@@ -215,19 +215,27 @@ describe('RdfXmlParser', () => {
       { x: 'y' },
       { a: 'b' },
     ];
+    const parser: any = {
+      saxStream: {
+        _parser: {
+          column: 2,
+          line: 1,
+        },
+      },
+    };
 
     it('should expand a known prefix', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('a:abc', ns))
+      return expect(RdfXmlParser.expandPrefixedTerm('a:abc', ns, parser))
         .toEqual({ local: 'abc', prefix: 'a', uri: 'b' });
     });
 
     it('should expand a known prefix of the parent', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('x:abc', ns))
+      return expect(RdfXmlParser.expandPrefixedTerm('x:abc', ns, parser))
         .toEqual({ local: 'abc', prefix: 'x', uri: 'y' });
     });
 
     it('should error on an unknown prefix with default ns', () => {
-      return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', ns))
+      return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', ns, parser))
         .toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
     });
 
@@ -235,11 +243,11 @@ describe('RdfXmlParser', () => {
       return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', [
         { x: 'y' },
         { a: 'b' },
-      ])).toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
+      ], parser)).toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
     });
 
     it('should expand no prefix to the default ns', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('abc', ns))
+      return expect(RdfXmlParser.expandPrefixedTerm('abc', ns, parser))
         .toEqual({ local: 'abc', prefix: '', uri: 'default' });
     });
 
@@ -249,7 +257,7 @@ describe('RdfXmlParser', () => {
         { x: 'y' },
         { '': 'firstdefault' },
         { a: 'b' },
-      ])).toEqual({ local: 'abc', prefix: '', uri: 'firstdefault' });
+      ], parser)).toEqual({ local: 'abc', prefix: '', uri: 'firstdefault' });
     });
   });
 
@@ -301,6 +309,7 @@ abc`)).rejects.toBeTruthy();
     });
 
     describe('#valueToUri', () => {
+
       it('create a named node from an absolute URI when no baseIRI is given', () => {
         expect(parser.valueToUri('http://example.org/', {}))
           .toEqual(DataFactory.namedNode('http://example.org/'));
@@ -403,6 +412,37 @@ abc`)).rejects.toBeTruthy();
       it('create a named node from a baseIRI with http:// and remove current-dir paths', () => {
         expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/././a' }))
           .toEqual(DataFactory.namedNode('http://aa/xyz'));
+      });
+    });
+
+    describe('should error with line numbers', () => {
+
+      beforeEach(() => {
+        parser = new RdfXmlParser({ trackPosition: true });
+      });
+
+      // 2.10
+      it('on node elements with both rdf:about and rdf:nodeID', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:nodeID="abc" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Line 4 column 90: Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while abc and http://www.w3.org/TR/rdf-syntax-grammar where found.'));
+      });
+
+      // 2.10
+      it('on node elements with both rdf:nodeID and rdf:about', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:nodeID="abc" rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
+</rdf:RDF>`)).rejects.toEqual(
+          new Error('Line 4 column 90: Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+            'while http://www.w3.org/TR/rdf-syntax-grammar and abc where found.'));
       });
     });
 
