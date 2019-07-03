@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.3.0"></a>
+## [v1.3.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.4...v1.3.0) - 2019-07-03
+
+### Added
+* [Add 'trackPosition' option to print line numbers on errors, Closes #16](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/1a948ffa72a70503022d4a31c0c6ecd7d5ba7e12)
+* [Add 'allowDuplicateRdfIds' to allow duplicate rdf:IDs, Closes #18](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/1195847f1ee419d67d217bffaadc51a2d5f91f72)
+
+### Fixed
+* [Make DOCTYPE ENTITY parsing less strict regarding whitespace characters](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/76a641366d97f5db53ea80da025018fb5ff60f05)
+
 <a name="v1.2.4"></a>
 ## [v1.2.4](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.3...v1.2.4) - 2019-06-24
 
