@@ -765,11 +765,30 @@ export interface IExpandedPrefix {
 }
 
 export interface IRdfXmlParserArgs {
+  /**
+   * A custom RDFJS DataFactory to construct terms and triples.
+   */
   dataFactory?: RDF.DataFactory;
+  /**
+   * An initital default base IRI.
+   */
   baseIRI?: string;
+  /**
+   * The default graph for constructing quads.
+   */
   defaultGraph?: RDF.Term;
+  /**
+   * If the internal SAX parser should parse XML in strict mode, and error if it is invalid.
+   */
   strict?: boolean;
+  /**
+   * If the internal position (line, column) should be tracked an emitted in error messages.
+   */
   trackPosition?: boolean;
+  /**
+   * By default multiple occurrences of the same `rdf:ID` value are not allowed.
+   * By setting this option to `true`, this uniqueness check can be disabled.
+   */
   allowDuplicateRdfIds?: boolean;
 }
 
