@@ -429,7 +429,7 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" rdf:nodeID="abc" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Line 4 column 90: Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+          new Error('Line 5 column 91: Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
             'while abc and http://www.w3.org/TR/rdf-syntax-grammar where found.'));
       });
 
@@ -441,7 +441,7 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:nodeID="abc" rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" />
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Line 4 column 90: Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
+          new Error('Line 5 column 91: Only one of rdf:about, rdf:nodeID and rdf:ID can be present, ' +
             'while http://www.w3.org/TR/rdf-syntax-grammar and abc where found.'));
       });
     });
