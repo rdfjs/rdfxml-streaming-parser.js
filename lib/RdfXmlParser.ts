@@ -52,6 +52,7 @@ export class RdfXmlParser extends Transform {
   private readonly baseIRI: string;
   private readonly defaultGraph?: RDF.Term;
   private readonly strict?: boolean;
+  private readonly allowDuplicateRdfIds?: boolean;
   private readonly saxStream: SAXStream;
 
   private readonly activeTagStack: IActiveTag[] = [];
@@ -681,10 +682,12 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
    * @param {Term} term An RDF term.
    */
   protected claimNodeId(term: RDF.Term) {
-    if (this.nodeIds[term.value]) {
-      throw this.newParseError(`Found multiple occurrences of rdf:ID='${term.value}'.`);
+    if (!this.allowDuplicateRdfIds) {
+      if (this.nodeIds[term.value]) {
+        throw this.newParseError(`Found multiple occurrences of rdf:ID='${term.value}'.`);
+      }
+      this.nodeIds[term.value] = true;
     }
-    this.nodeIds[term.value] = true;
   }
 
   /**
@@ -767,6 +770,7 @@ export interface IRdfXmlParserArgs {
   defaultGraph?: RDF.Term;
   strict?: boolean;
   trackPosition?: boolean;
+  allowDuplicateRdfIds?: boolean;
 }
 
 export interface IActiveTag {

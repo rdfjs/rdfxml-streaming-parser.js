@@ -2326,6 +2326,22 @@ abc`)).rejects.toBeTruthy();
               '"Dogs in Hats"'),
           ]);
       });
+
+      it('not error on duplicate rdf:IDs when allowDuplicateRdfIds is enabled', async () => {
+        parser = new RdfXmlParser({ allowDuplicateRdfIds: true });
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/"
+         xml:base="http://example.org/triples">
+  <rdf:Description rdf:ID="frag" ex:value="a" />
+  <rdf:Description rdf:ID="frag" ex:value="b" />
+</rdf:RDF>`);
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://example.org/triples#frag', 'http://example.org/value', '"a"'),
+            quad('http://example.org/triples#frag', 'http://example.org/value', '"b"'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
