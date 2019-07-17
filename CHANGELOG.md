@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.3.1"></a>
+## [v1.3.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.0...v1.3.1) - 2019-07-17
+
+### Fixed
+* [Fix doctype parser not accepting single-quoted strings](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/d6b23309f77027bd7405ea9d3ae9e066e366e1a8)
+
 <a name="v1.3.0"></a>
 ## [v1.3.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.2.4...v1.3.0) - 2019-07-03
 
