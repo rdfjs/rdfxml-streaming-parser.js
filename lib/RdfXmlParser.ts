@@ -751,7 +751,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
    * @param {string} doctype The read doctype.
    */
   protected onDoctype(doctype: string) {
-    doctype.replace(/<!ENTITY\s+([^\s]+)\s+"([^"]+)"\s*>/g, (match, prefix, uri) => {
+    doctype.replace(/<!ENTITY\s+([^\s]+)\s+["']([^"']+)["']\s*>/g, (match, prefix, uri) => {
       (<any> this.saxStream)._parser.ENTITIES[prefix] = uri;
       return '';
     });
