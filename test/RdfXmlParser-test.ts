@@ -2359,6 +2359,35 @@ abc`)).rejects.toBeTruthy();
             quad('http://example.org/triples#frag', 'http://example.org/value', '"b"'),
           ]);
       });
+
+      it('multiple identical property nodes as distinct blank nodes', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:dct="http://purl.org/dc/terms/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+  <rdf:Description rdf:about="https://example.com/">
+    <dct:creator>
+      <rdf:Description>
+        <rdfs:label>ABC</rdfs:label>
+      </rdf:Description>
+    </dct:creator>
+    <dct:creator>
+      <rdf:Description>
+        <rdfs:label>XYZ</rdfs:label>
+      </rdf:Description>
+    </dct:creator>
+  </rdf:Description>
+</rdf:RDF>`);
+
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('https://example.com/', 'http://purl.org/dc/terms/creator', '_:b1'),
+            quad('https://example.com/', 'http://purl.org/dc/terms/creator', '_:b2'),
+            quad('_:b1', 'http://www.w3.org/2000/01/rdf-schema#label', '"ABC"'),
+            quad('_:b2', 'http://www.w3.org/2000/01/rdf-schema#label', '"XYZ"'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
