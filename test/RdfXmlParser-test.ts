@@ -2388,6 +2388,23 @@ abc`)).rejects.toBeTruthy();
             quad('_:b2', 'http://www.w3.org/2000/01/rdf-schema#label', '"XYZ"'),
           ]);
       });
+
+      // 2.12
+      it('on property elements with an xmlns property and rdf:datatype', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <bla:editor xmlns:bla="http://x.p.t/o/TBox#" rdf:datatype="http://www.w3.org/TR/rdf-syntax-grammar">Yes</bla:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://x.p.t/o/TBox#editor',
+              '"Yes"^^http://www.w3.org/TR/rdf-syntax-grammar'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
