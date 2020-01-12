@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.3.2"></a>
+## [v1.3.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.1...v1.3.2) - 2020-01-12
+
+### Fixed
+* [Fix xmlns in datatyped property tags causing errors, Closes #21](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/6913fa1ffea102ba9c35743fc769961cc47d816f)
+
 <a name="v1.3.1"></a>
 ## [v1.3.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.0...v1.3.1) - 2019-07-17
 
