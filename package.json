@@ -35,6 +35,7 @@
     "@types/jest": "^24.0.0",
     "@types/minimist": "^1.2.0",
     "@types/sax": "^1.0.1",
+    "@types/rdf-js": "^2.0.8",
     "arrayify-stream": "^1.0.0",
     "coveralls": "^3.0.0",
     "jest": "^24.3.0",
@@ -85,7 +86,7 @@
     "version": "manual-git-changelog onversion"
   },
   "dependencies": {
-    "@rdfjs/data-model": "^1.1.1",
+    "@rdfjs/data-model": "^1.1.2",
     "relative-to-absolute-iri": "^1.0.0",
     "sax": "^1.2.4"
   }

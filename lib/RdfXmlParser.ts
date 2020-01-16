@@ -5,7 +5,7 @@ import {PassThrough, Transform, TransformCallback} from "stream";
 import EventEmitter = NodeJS.EventEmitter;
 import {ParseError} from "./ParseError";
 
-export class RdfXmlParser extends Transform {
+export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RDF.Stream> {
 
   // Regex for valid IRIs
   public static readonly IRI_REGEX: RegExp = /^([A-Za-z][A-Za-z0-9+-.]*):[^ "<>{}|\\\[\]`]*$/;
@@ -172,9 +172,9 @@ export class RdfXmlParser extends Transform {
   /**
    * Parses the given text stream into a quad stream.
    * @param {NodeJS.EventEmitter} stream A text stream.
-   * @return {NodeJS.EventEmitter} A quad stream.
+   * @return {RDF.Stream} A quad stream.
    */
-  public import(stream: EventEmitter): EventEmitter {
+  public import(stream: EventEmitter): RDF.Stream {
     const output = new PassThrough({ objectMode: true });
     stream.on('error', (error) => parsed.emit('error', error));
     stream.on('data', (data) => output.write(data));
