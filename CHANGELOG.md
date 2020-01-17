@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.3.3"></a>
+## [v1.3.3](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.2...v1.3.3) - 2020-01-17
+
+### Fixed
+* [Implement RDF.Sink interface in TypeScript](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/6a78effbad97abdfe3833151a624dbf7d65e964a)
+
 <a name="v1.3.2"></a>
 ## [v1.3.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.1...v1.3.2) - 2020-01-12
 
