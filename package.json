@@ -35,7 +35,7 @@
     "@types/jest": "^24.0.0",
     "@types/minimist": "^1.2.0",
     "@types/sax": "^1.0.1",
-    "@types/rdf-js": "^2.0.8",
+    "@types/rdf-js": "^2.0.10",
     "arrayify-stream": "^1.0.0",
     "coveralls": "^3.0.0",
     "jest": "^24.3.0",

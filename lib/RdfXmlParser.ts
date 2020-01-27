@@ -50,7 +50,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly options: IRdfXmlParserArgs;
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
-  private readonly defaultGraph?: RDF.Term;
+  private readonly defaultGraph?: RDF.Quad_Graph;
   private readonly strict?: boolean;
   private readonly allowDuplicateRdfIds?: boolean;
   private readonly saxStream: SAXStream;
@@ -331,7 +331,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       }
     }
 
-    const predicates: RDF.Term[] = [];
+    const predicates: RDF.NamedNode[] = [];
     const objects: string[] = [];
 
     // Collect all attributes as triples
@@ -508,8 +508,8 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
     // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
     let activeSubSubjectValue: string = null;
     let subSubjectValueBlank: boolean = true;
-    const predicates: RDF.Term[] = [];
-    const objects: RDF.Term[] = [];
+    const predicates: RDF.NamedNode[] = [];
+    const objects: (RDF.NamedNode | RDF.BlankNode | RDF.Literal)[] = [];
     for (const propertyAttributeKey in tag.attributes) {
       const propertyAttributeValue: string = tag.attributes[propertyAttributeKey];
       const propertyAttributeKeyExpanded: IExpandedPrefix = RdfXmlParser
@@ -657,7 +657,8 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
    * @param {Term} statementId An optional resource that identifies the triple.
    *                           If truthy, then the given triple will also be emitted reified.
    */
-  protected emitTriple(subject: RDF.Term, predicate: RDF.Term, object: RDF.Term, statementId?: RDF.Term) {
+  protected emitTriple(subject: RDF.Quad_Subject, predicate: RDF.Quad_Predicate, object: RDF.Quad_Object,
+                       statementId?: RDF.NamedNode) {
     this.push(this.dataFactory.quad(subject, predicate, object, this.defaultGraph));
 
     // Reify triple
@@ -795,11 +796,11 @@ export interface IRdfXmlParserArgs {
 
 export interface IActiveTag {
   ns?: {[prefix: string]: string}[];
-  subject?: RDF.Term;
-  predicate?: RDF.Term;
+  subject?: RDF.NamedNode | RDF.BlankNode;
+  predicate?: RDF.NamedNode;
   predicateEmitted?: boolean;
-  predicateSubPredicates?: RDF.Term[];
-  predicateSubObjects?: RDF.Term[];
+  predicateSubPredicates?: RDF.NamedNode[];
+  predicateSubObjects?: (RDF.NamedNode | RDF.BlankNode | RDF.Literal)[];
   hadChildren?: boolean;
   text?: string;
   language?: string;
@@ -808,13 +809,13 @@ export interface IActiveTag {
   childrenParseType?: ParseType;
   baseIRI?: string;
   listItemCounter?: number;
-  reifiedStatementId?: RDF.Term;
+  reifiedStatementId?: RDF.NamedNode;
   childrenTagsToString?: boolean;
   childrenStringTags?: string[];
   childrenStringEmitClosingTag?: string;
   // for creating rdf:Lists
-  childrenCollectionSubject?: RDF.Term;
-  childrenCollectionPredicate?: RDF.Term;
+  childrenCollectionSubject?: RDF.NamedNode | RDF.BlankNode;
+  childrenCollectionPredicate?: RDF.NamedNode;
 }
 
 export enum ParseType {
