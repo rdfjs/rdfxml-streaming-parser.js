@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/rdfjs/rdfxml-streaming-parser.js.svg?branch=master)](https://travis-ci.org/rdfjs/rdfxml-streaming-parser.js)
 [![Coverage Status](https://coveralls.io/repos/github/rdfjs/rdfxml-streaming-parser.js/badge.svg?branch=master)](https://coveralls.io/github/rdfjs/rdfxml-streaming-parser.js?branch=master)
-[![npm version](https://badge.fury.io/js/rdfxml-streaming-parser.svg)](https://www.npmjs.com/package/rdfxml-streaming-parser) [![Greenkeeper badge](https://badges.greenkeeper.io/rdfjs/rdfxml-streaming-parser.js.svg)](https://greenkeeper.io/)
+[![npm version](https://badge.fury.io/js/rdfxml-streaming-parser.svg)](https://www.npmjs.com/package/rdfxml-streaming-parser)
 
 A [fast](https://gist.github.com/rubensworks/a351f394ca6b70d6ad4ec1adc691a453), _streaming_ [RDF/XML](https://www.w3.org/TR/rdf-syntax-grammar/) parser
 that outputs [RDFJS](http://rdf.js.org/)-compliant quads.
