@@ -38,7 +38,7 @@
     "@types/rdf-js": "^2.0.10",
     "arrayify-stream": "^1.0.0",
     "coveralls": "^3.0.0",
-    "jest": "^24.3.0",
+    "jest": "^25.0.0",
     "jest-rdf": "^1.3.0",
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^1.2.2",
