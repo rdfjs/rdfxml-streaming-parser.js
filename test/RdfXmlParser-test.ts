@@ -2405,6 +2405,28 @@ abc`)).rejects.toBeTruthy();
               '"Yes"^^http://www.w3.org/TR/rdf-syntax-grammar'),
           ]);
       });
+
+      it('on property elements with an xmlns property and rdf:nodeID', async () => {
+        const array = await parse(parser, `<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns="http://ex.org/o/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+  <rdf:Description rdf:about="http://ex.org/i/subject">
+    <rdf:type rdf:resource="http://ex.org/o/type"/>
+    <hasBlankNode rdf:nodeID="orange"/>
+    <ns0:hasBlankNode xmlns:ns0="http://anon.org/o/" rdf:nodeID="yellow"/>
+  </rdf:Description>
+
+</rdf:RDF>`);
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://ex.org/i/subject', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://ex.org/o/type'),
+            quad('http://ex.org/i/subject', 'http://ex.org/o/hasBlankNode', '_:orange'),
+            quad('http://ex.org/i/subject', 'http://anon.org/o/hasBlankNode', '_:yellow"'),
+          ]);
+      });
     });
 
     describe('streaming-wise', () => {
