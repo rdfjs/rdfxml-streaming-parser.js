@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.3.5"></a>
+## [v1.3.5](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.4...v1.3.5) - 2020-04-14
+
+### Fixed
+* [Fix relative xml:base not being handled, Closes #32](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/a50f49d8eb8ecae4e216a535c0b8b9f4fb0ff655)
+
 <a name="v1.3.4"></a>
 ## [v1.3.4](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.3...v1.3.4) - 2020-01-27
 
