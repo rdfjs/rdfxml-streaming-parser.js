@@ -1978,6 +1978,44 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      it('With an xml:base relative to the document IRI', async () => {
+        parser = new RdfXmlParser({ baseIRI: 'http://document.org/' });
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="/relative">
+  <eg:type rdf:about="" />
+  <rdf:Description rdf:ID="foo" >
+    <eg:value rdf:resource="relpath" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://document.org/relative', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/type'),
+            quad('http://document.org/relative#foo', 'http://example.org/value', 'http://document.org/relpath'),
+          ]);
+      });
+
+      it('With an empty xml:base should resolve to the document IRI', async () => {
+        parser = new RdfXmlParser({ baseIRI: 'http://document.org/' });
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="">
+  <eg:type rdf:about="" />
+  <rdf:Description rdf:ID="foo" >
+    <eg:value rdf:resource="relpath" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://document.org/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'http://example.org/type'),
+            quad('http://document.org/#foo', 'http://example.org/value', 'http://document.org/relpath'),
+          ]);
+      });
+
       // 2.15
       it('rdf:li properties', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>

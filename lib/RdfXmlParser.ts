@@ -389,7 +389,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
           continue;
         } else if (attributeKeyExpanded.local === 'base') {
           // SAX Parser does not expand xml:base, based on DOCTYPE, so we have to do it manually
-          activeTag.baseIRI = attributeValue;
+          activeTag.baseIRI = resolve(attributeValue, activeTag.baseIRI);
           continue;
         }
       }
