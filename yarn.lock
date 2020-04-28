@@ -502,10 +502,17 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.13.tgz#ccebcdb990bd6139cd16e84c39dc2fb1023ca90c"
   integrity sha512-pMCcqU2zT4TjqYFrWtYHKal7Sl30Ims6ulZ4UFXxI4xbtQqK/qqKwkDoBFCfooRqqmRu9vY3xaJRwxSh673aYg==
 
-"@types/rdf-js@^2.0.1", "@types/rdf-js@^2.0.10", "@types/rdf-js@^2.0.2":
+"@types/rdf-js@^2.0.1", "@types/rdf-js@^2.0.2":
   version "2.0.10"
   resolved "https://registry.yarnpkg.com/@types/rdf-js/-/rdf-js-2.0.10.tgz#48cbb55044bc9e3e100f7e7261e66994a17836ff"
   integrity sha512-p6jynQltGUe/7Lr7z/Op6GiQ7XE/HKVMqtMs/67DYPCIuADXC0lXjgIKY6Kcv6Sh3HFnGL/UCcgnHGsrYG+xSA==
+  dependencies:
+    "@types/node" "*"
+
+"@types/rdf-js@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/rdf-js/-/rdf-js-3.0.0.tgz#7c45210d34b3ccc301b84f462bec5698d63bea1a"
+  integrity sha512-IUUXkMAt1iU7XhrNnjwPHeYkk5s71T8m95FoZmpjhi/3ngA0hyeQxST5i1Ul1y/dh/lePH1u4BwTH3ZKULYSIg==
   dependencies:
     "@types/node" "*"
 
