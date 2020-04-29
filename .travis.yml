@@ -1,17 +1,3 @@
-language: node_js
-node_js:
- - "10"
- - "12"
- - "14"
- - "lts/*"
- - "node"
+import: rubensworks/travis-presets:node.yml@master
 script:
-  - npm run build
-  - npm run lint
-  - npm test
   - npm run spec
-after_success:
-  - npm run coveralls
-cache:
-  directories:
-    - node_modules
