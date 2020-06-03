@@ -59,7 +59,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly nodeIds: {[id: string]: boolean} = {};
 
   constructor(args?: IRdfXmlParserArgs) {
-    super({ objectMode: true });
+    super({ readableObjectMode: true });
 
     if (args) {
       Object.assign(this, args);
@@ -175,7 +175,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * @return {RDF.Stream} A quad stream.
    */
   public import(stream: EventEmitter): RDF.Stream {
-    const output = new PassThrough({ objectMode: true });
+    const output = new PassThrough({ readableObjectMode: true });
     stream.on('error', (error) => parsed.emit('error', error));
     stream.on('data', (data) => output.write(data));
     stream.on('end', () => output.emit('end'));

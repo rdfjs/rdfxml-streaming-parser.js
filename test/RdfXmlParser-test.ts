@@ -5,6 +5,7 @@ import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 const DataFactory = require('@rdfjs/data-model');
 const streamifyString = require('streamify-string');
+const streamifyArray = require('streamify-array');
 const arrayifyStream = require('arrayify-stream');
 const quad = require('rdf-quad');
 
@@ -2564,6 +2565,18 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://example.org/resource/"
                    rdf:type="http://example.org/class/"/>
 </rdf:RDF>`);
+      return expect(await arrayifyStream(parser.import(stream))).toBeRdfIsomorphic([
+        quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+          'http://example.org/class/'),
+      ]);
+    });
+
+    it('should parse an object stream', async () => {
+      const stream = streamifyArray([Buffer.from(`<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.org/resource/"
+                   rdf:type="http://example.org/class/"/>
+</rdf:RDF>`)]);
       return expect(await arrayifyStream(parser.import(stream))).toBeRdfIsomorphic([
         quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
           'http://example.org/class/'),
