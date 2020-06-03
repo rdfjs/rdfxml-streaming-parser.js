@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.3.6"></a>
+## [v1.3.6](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.5...v1.3.6) - 2020-06-03
+
+### Fixed
+* [Fix incompatibility with WhatWG streams, Closes #35](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/93f21e91a3321407dcc65007d32f10569e2496d4)
+
+### Changed
+* [Update dependency @types/rdf-js to v3 (#33)](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/35509c1fad2005a0c63e062fb62c1bed47e2d3ce)
+
 <a name="v1.3.5"></a>
 ## [v1.3.5](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.4...v1.3.5) - 2020-04-14
 
