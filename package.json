@@ -32,7 +32,7 @@
     "test"
   ],
   "devDependencies": {
-    "@types/jest": "^25.1.0",
+    "@types/jest": "^26.0.0",
     "@types/minimist": "^1.2.0",
     "@types/sax": "^1.0.1",
     "@types/rdf-js": "^3.0.0",
