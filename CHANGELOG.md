@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.4.0"></a>
+## [v1.4.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.6...v1.4.0) - 2020-09-15
+
+### Changed
+* [Update to @types/rdf-js 4.x](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/f1a2b8a874dcfbed02e475964eacd375dd817e59)
+
+### Fixed
+* [Fix import method sometimes failing on large streams](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/9eaead0ba1c1b72fd3b0f61d25bef0c1d19577b8)
+
 <a name="v1.3.6"></a>
 ## [v1.3.6](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.5...v1.3.6) - 2020-06-03
 
