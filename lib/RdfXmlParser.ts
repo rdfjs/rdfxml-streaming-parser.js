@@ -4,6 +4,7 @@ import {createStream, SAXStream, Tag} from "sax";
 import {PassThrough, Transform, TransformCallback} from "stream";
 import EventEmitter = NodeJS.EventEmitter;
 import {ParseError} from "./ParseError";
+import {DataFactory} from "rdf-data-factory";
 
 export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RDF.Stream> {
 
@@ -66,7 +67,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       this.options = args;
     }
     if (!this.dataFactory) {
-      this.dataFactory = require('@rdfjs/data-model');
+      this.dataFactory = new DataFactory();
     }
     if (!this.baseIRI) {
       this.baseIRI = '';

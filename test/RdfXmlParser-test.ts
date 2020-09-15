@@ -3,11 +3,12 @@ import * as RDF from "rdf-js";
 import {SAXStream, Tag} from "sax";
 import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
-const DataFactory = require('@rdfjs/data-model');
+import {DataFactory} from "rdf-data-factory";
 const streamifyString = require('streamify-string');
 const streamifyArray = require('streamify-array');
 const arrayifyStream = require('arrayify-stream');
 const quad = require('rdf-quad');
+const DF = new DataFactory();
 
 /* Test inspired by https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-intro */
 /* (Some) tests are tagged with the section they apply to  */
@@ -20,9 +21,9 @@ describe('RdfXmlParser', () => {
   it('should be constructable without args', () => {
     const instance = new RdfXmlParser();
     expect(instance).toBeInstanceOf(RdfXmlParser);
-    expect((<any> instance).dataFactory).toBe(require('@rdfjs/data-model'));
+    expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toBe('');
-    expect((<any> instance).defaultGraph).toBe(DataFactory.defaultGraph());
+    expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).strict).toBeFalsy();
     expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
   });
@@ -30,9 +31,9 @@ describe('RdfXmlParser', () => {
   it('should be constructable with empty args', () => {
     const instance = new RdfXmlParser({});
     expect(instance).toBeInstanceOf(RdfXmlParser);
-    expect((<any> instance).dataFactory).toBe(DataFactory);
+    expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toBe('');
-    expect((<any> instance).defaultGraph).toBe(DataFactory.defaultGraph());
+    expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).strict).toBeFalsy();
     expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
   });
@@ -51,18 +52,18 @@ describe('RdfXmlParser', () => {
   it('should be constructable with args with a custom base IRI', () => {
     const instance = new RdfXmlParser({ baseIRI: 'myBaseIRI' });
     expect(instance).toBeInstanceOf(RdfXmlParser);
-    expect((<any> instance).dataFactory).toBe(DataFactory);
+    expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toEqual('myBaseIRI');
-    expect((<any> instance).defaultGraph).toBe(DataFactory.defaultGraph());
+    expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).strict).toBeFalsy();
     expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
   });
 
   it('should be constructable with args with a custom default graph', () => {
-    const defaultGraph = DataFactory.namedNode('abc');
+    const defaultGraph = DF.namedNode('abc');
     const instance = new RdfXmlParser({ defaultGraph });
     expect(instance).toBeInstanceOf(RdfXmlParser);
-    expect((<any> instance).dataFactory).toBe(DataFactory);
+    expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toEqual('');
     expect((<any> instance).defaultGraph).toBe(defaultGraph);
     expect((<any> instance).strict).toBeFalsy();
@@ -72,16 +73,16 @@ describe('RdfXmlParser', () => {
   it('should be constructable with args with strict mode', () => {
     const instance = new RdfXmlParser({ strict: true });
     expect(instance).toBeInstanceOf(RdfXmlParser);
-    expect((<any> instance).dataFactory).toBe(DataFactory);
+    expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toEqual('');
-    expect((<any> instance).defaultGraph).toBe(DataFactory.defaultGraph());
+    expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).strict).toBe(true);
     expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
   });
 
   it('should be constructable with args with a custom data factory, base IRI, strict and default graph', () => {
     const dataFactory: any = { defaultGraph: () => 'abc' };
-    const defaultGraph = DataFactory.namedNode('abc');
+    const defaultGraph = DF.namedNode('abc');
     const instance = new RdfXmlParser({ dataFactory, baseIRI: 'myBaseIRI', defaultGraph, strict: true });
     expect(instance).toBeInstanceOf(RdfXmlParser);
     expect((<any> instance).dataFactory).toBe(dataFactory);
@@ -313,22 +314,22 @@ abc`)).rejects.toBeTruthy();
 
       it('create a named node from an absolute URI when no baseIRI is given', () => {
         expect(parser.valueToUri('http://example.org/', {}))
-          .toEqual(DataFactory.namedNode('http://example.org/'));
+          .toEqual(DF.namedNode('http://example.org/'));
       });
 
       it('create a named node from an absolute URI when the baseIRI is empty', () => {
         expect(parser.valueToUri('http://example.org/', { baseIRI: '' }))
-          .toEqual(DataFactory.namedNode('http://example.org/'));
+          .toEqual(DF.namedNode('http://example.org/'));
       });
 
       it('create a named node from an absolute URI when a baseIRI is given', () => {
         expect(parser.valueToUri('http://example.org/', { baseIRI: 'http://base.org/' }))
-          .toEqual(DataFactory.namedNode('http://example.org/'));
+          .toEqual(DF.namedNode('http://example.org/'));
       });
 
       it('create a named node from the baseIRI when given value is empty', () => {
         expect(parser.valueToUri('', { baseIRI: 'http://base.org/' }))
-          .toEqual(DataFactory.namedNode('http://base.org/'));
+          .toEqual(DF.namedNode('http://base.org/'));
       });
 
       it('throw an error on a relative URI when no baseIRI is given', () => {
@@ -348,22 +349,22 @@ abc`)).rejects.toBeTruthy();
 
       it('create a named node from a relative URI when a baseIRI is given', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http://base.org/' }))
-          .toEqual(DataFactory.namedNode('http://base.org/abc'));
+          .toEqual(DF.namedNode('http://base.org/abc'));
       });
 
       it('create a named node from a relative URI when a baseIRI is given and ignore the baseIRI fragment', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http://base.org/#frag' }))
-          .toEqual(DataFactory.namedNode('http://base.org/abc'));
+          .toEqual(DF.namedNode('http://base.org/abc'));
       });
 
       it('create a named node from a hash', () => {
         expect(parser.valueToUri('#abc', { baseIRI: 'http://base.org/' }))
-          .toEqual(DataFactory.namedNode('http://base.org/#abc'));
+          .toEqual(DF.namedNode('http://base.org/#abc'));
       });
 
       it('create a named node and ignore the baseIRI if the value contains a colon', () => {
         expect(parser.valueToUri('http:abc', { baseIRI: 'http://base.org/' }))
-          .toEqual(DataFactory.namedNode('http:abc'));
+          .toEqual(DF.namedNode('http:abc'));
       });
 
       it('error for a non-absolute baseIRI', () => {
@@ -372,47 +373,47 @@ abc`)).rejects.toBeTruthy();
 
       it('create a named node that has the baseIRI scheme if the value starts with //', () => {
         expect(parser.valueToUri('//abc', { baseIRI: 'http://base.org/' }))
-          .toEqual(DataFactory.namedNode('http://abc'));
+          .toEqual(DF.namedNode('http://abc'));
       });
 
       it('create a named node from a baseIRI without a / in the path', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http://base.org' }))
-          .toEqual(DataFactory.namedNode('http://base.org/abc'));
+          .toEqual(DF.namedNode('http://base.org/abc'));
       });
 
       it('create a named node from the baseIRI scheme when the baseIRI contains only ://', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http://' }))
-          .toEqual(DataFactory.namedNode('http:abc'));
+          .toEqual(DF.namedNode('http:abc'));
       });
 
       it('create a named node from the baseIRI if something other than a / follows the :', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http:a' }))
-          .toEqual(DataFactory.namedNode('http:abc'));
+          .toEqual(DF.namedNode('http:abc'));
       });
 
       it('create a named node from the baseIRI scheme if nothing follows the :', () => {
         expect(parser.valueToUri('abc', { baseIRI: 'http:' }))
-          .toEqual(DataFactory.namedNode('http:abc'));
+          .toEqual(DF.namedNode('http:abc'));
       });
 
       it('create a named node from an absolute path and ignore the path from the base IRI', () => {
         expect(parser.valueToUri('/abc/def/', { baseIRI: 'http://base.org/123/456/' }))
-          .toEqual(DataFactory.namedNode('http://base.org/abc/def/'));
+          .toEqual(DF.namedNode('http://base.org/abc/def/'));
       });
 
       it('create a named node from a baseIRI with http:// and ignore everything after the last slash', () => {
         expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/a' }))
-          .toEqual(DataFactory.namedNode('http://aa/xyz'));
+          .toEqual(DF.namedNode('http://aa/xyz'));
       });
 
       it('create a named node from a baseIRI with http:// and collapse parent paths', () => {
         expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/parent/parent/../../a' }))
-          .toEqual(DataFactory.namedNode('http://aa/xyz'));
+          .toEqual(DF.namedNode('http://aa/xyz'));
       });
 
       it('create a named node from a baseIRI with http:// and remove current-dir paths', () => {
         expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/././a' }))
-          .toEqual(DataFactory.namedNode('http://aa/xyz'));
+          .toEqual(DF.namedNode('http://aa/xyz'));
       });
     });
 
@@ -1259,7 +1260,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.5
       it('an rdf:Description without rdf:about and with an attribute with a custom default', async () => {
-        const myParser = new RdfXmlParser({ defaultGraph: DataFactory.namedNode('http://example.org/g1') });
+        const myParser = new RdfXmlParser({ defaultGraph: DF.namedNode('http://example.org/g1') });
         return expect(await parse(myParser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -1704,7 +1705,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:nodeID="abc"/>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[0].object).toEqual(DataFactory.blankNode('abc'));
+        expect(array[0].object).toEqual(DF.blankNode('abc'));
         return expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor',
@@ -1719,7 +1720,7 @@ abc`)).rejects.toBeTruthy();
             xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:nodeID="abc" ex:fullName="Dave Beckett" />
 </rdf:RDF>`);
-        expect(array[0].subject).toEqual(DataFactory.blankNode('abc'));
+        expect(array[0].subject).toEqual(DF.blankNode('abc'));
         return expect(array)
           .toBeRdfIsomorphic([
             quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
@@ -1741,9 +1742,9 @@ abc`)).rejects.toBeTruthy();
     <ex:homePage rdf:resource="http://purl.org/net/dajobe/"/>
   </rdf:Description>
 </rdf:RDF>`);
-        expect(array[1].object).toEqual(DataFactory.blankNode('abc'));
-        expect(array[2].subject).toEqual(DataFactory.blankNode('abc'));
-        expect(array[3].subject).toEqual(DataFactory.blankNode('abc'));
+        expect(array[1].object).toEqual(DF.blankNode('abc'));
+        expect(array[2].subject).toEqual(DF.blankNode('abc'));
+        expect(array[3].subject).toEqual(DF.blankNode('abc'));
         return expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
