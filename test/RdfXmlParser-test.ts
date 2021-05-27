@@ -299,7 +299,7 @@ describe('RdfXmlParser', () => {
 
   describe('a default instance', () => {
 
-    let parser;
+    let parser: any;
 
     beforeEach(() => {
       parser = new RdfXmlParser();
@@ -2554,7 +2554,7 @@ abc`)).rejects.toBeTruthy();
   });
 
   describe('#import', () => {
-    let parser;
+    let parser: any;
 
     beforeAll(() => {
       parser = new RdfXmlParser();
