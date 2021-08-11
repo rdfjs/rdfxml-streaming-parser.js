@@ -1,4 +1,4 @@
-import * as RDF from "rdf-js";
+import * as RDF from "@rdfjs/types";
 import {resolve} from "relative-to-absolute-iri";
 import {createStream, SAXStream, Tag} from "sax";
 import {PassThrough, Transform, TransformCallback} from "stream";

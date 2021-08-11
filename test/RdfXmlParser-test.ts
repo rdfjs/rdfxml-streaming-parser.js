@@ -1,5 +1,5 @@
 import "jest-rdf";
-import * as RDF from "rdf-js";
+import * as RDF from "@rdfjs/types";
 import {SAXStream, Tag} from "sax";
 import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
