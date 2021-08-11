@@ -32,7 +32,7 @@
     "test"
   ],
   "devDependencies": {
-    "@types/jest": "^26.0.0",
+    "@types/jest": "^27.0.0",
     "@types/minimist": "^1.2.0",
     "@types/sax": "^1.0.1",
     "arrayify-stream": "^1.0.0",
