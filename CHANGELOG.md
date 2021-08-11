@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.5.0"></a>
+## [v1.5.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.4.0...v1.5.0) - 2021-08-11
+
+### Changed
+* [Migrate to @rdfjs/types](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/7d4c747ce1585a58ebbeb7fb723bc30fda8aaa63)
+
 <a name="v1.4.0"></a>
 ## [v1.4.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.3.6...v1.4.0) - 2020-09-15
 
