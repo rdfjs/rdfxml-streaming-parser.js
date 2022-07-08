@@ -184,7 +184,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     return parsed;
   }
 
-  public _transform(chunk: any, encoding: string, callback: TransformCallback) {
+  public _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
     try {
       this.saxStream.write(chunk, encoding);
     } catch (e) {

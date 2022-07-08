@@ -6,7 +6,7 @@ import {RdfXmlParser} from "../lib/RdfXmlParser";
 import {DataFactory} from "rdf-data-factory";
 const streamifyString = require('streamify-string');
 const streamifyArray = require('streamify-array');
-const arrayifyStream = require('arrayify-stream');
+import arrayifyStream from 'arrayify-stream';
 const quad = require('rdf-quad');
 const DF = new DataFactory();
 
@@ -334,7 +334,7 @@ abc`)).rejects.toBeTruthy();
 
       it('throw an error on a relative URI when no baseIRI is given', () => {
         expect(() => parser.valueToUri('abc', {}))
-          .toThrow(new Error('Invalid URI: abc'));
+          .toThrow(new Error('Found invalid relative IRI \'abc\' for a missing baseIRI'));
       });
 
       it('create error on a URI with an invalid scheme', () => {
