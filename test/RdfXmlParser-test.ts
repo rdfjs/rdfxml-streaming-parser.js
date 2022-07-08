@@ -1,6 +1,6 @@
 import "jest-rdf";
 import * as RDF from "@rdfjs/types";
-import {SAXStream, Tag} from "sax";
+import {SaxesParser, SaxesTagPlain} from "saxes";
 import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 import {DataFactory} from "rdf-data-factory";
@@ -24,8 +24,7 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toBe('');
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
-    expect((<any> instance).strict).toBeFalsy();
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
+    expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
   it('should be constructable with empty args', () => {
@@ -34,8 +33,7 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toBe('');
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
-    expect((<any> instance).strict).toBeFalsy();
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
+    expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
   it('should be constructable with args with a custom data factory', () => {
@@ -45,8 +43,7 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).dataFactory).toBe(dataFactory);
     expect((<any> instance).baseIRI).toBe('');
     expect((<any> instance).defaultGraph).toBe('abc');
-    expect((<any> instance).strict).toBeFalsy();
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
+    expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
   it('should be constructable with args with a custom base IRI', () => {
@@ -55,8 +52,7 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toEqual('myBaseIRI');
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
-    expect((<any> instance).strict).toBeFalsy();
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
+    expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
   it('should be constructable with args with a custom default graph', () => {
@@ -66,35 +62,23 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
     expect((<any> instance).baseIRI).toEqual('');
     expect((<any> instance).defaultGraph).toBe(defaultGraph);
-    expect((<any> instance).strict).toBeFalsy();
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
+    expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
-  it('should be constructable with args with strict mode', () => {
-    const instance = new RdfXmlParser({ strict: true });
-    expect(instance).toBeInstanceOf(RdfXmlParser);
-    expect((<any> instance).dataFactory).toBeInstanceOf(DataFactory);
-    expect((<any> instance).baseIRI).toEqual('');
-    expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
-    expect((<any> instance).strict).toBe(true);
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
-  });
-
-  it('should be constructable with args with a custom data factory, base IRI, strict and default graph', () => {
+  it('should be constructable with args with a custom data factory and default graph', () => {
     const dataFactory: any = { defaultGraph: () => 'abc' };
     const defaultGraph = DF.namedNode('abc');
-    const instance = new RdfXmlParser({ dataFactory, baseIRI: 'myBaseIRI', defaultGraph, strict: true });
+    const instance = new RdfXmlParser({ dataFactory, baseIRI: 'myBaseIRI', defaultGraph });
     expect(instance).toBeInstanceOf(RdfXmlParser);
     expect((<any> instance).dataFactory).toBe(dataFactory);
     expect((<any> instance).baseIRI).toEqual('myBaseIRI');
     expect((<any> instance).defaultGraph).toBe(defaultGraph);
-    expect((<any> instance).strict).toBe(true);
-    expect((<any> instance).saxStream).toBeInstanceOf(SAXStream);
+    expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
   describe('#parseNamespace', () => {
     it('should parse a tag without attributes', () => {
-      const tag: Tag = { name: 'a', isSelfClosing: false, attributes: {} };
+      const tag: SaxesTagPlain = { name: 'a', isSelfClosing: false, attributes: {} };
       return expect(RdfXmlParser.parseNamespace(tag, null)).toEqual([
         {
           xml: 'http://www.w3.org/XML/1998/namespace',
@@ -103,7 +87,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should parse a tag with non-xmlns attributes', () => {
-      const tag: Tag = {
+      const tag: SaxesTagPlain = {
         attributes: {
           a: 'b',
           c: 'd',
@@ -121,7 +105,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should parse a tag with a default xmlns attribute', () => {
-      const tag: Tag = {
+      const tag: SaxesTagPlain = {
         attributes: {
           xmlns: 'a',
         },
@@ -139,7 +123,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should parse a tag with a xmlns attributes', () => {
-      const tag: Tag = {
+      const tag: SaxesTagPlain = {
         attributes: {
           'xmlns:a': '1',
           'xmlns:b': '2',
@@ -161,7 +145,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should parse a tag with a xmlns attributes and a parent tag without ns', () => {
-      const tag: Tag = {
+      const tag: SaxesTagPlain = {
         attributes: {
           'xmlns:a': '1',
           'xmlns:b': '2',
@@ -183,7 +167,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should parse a tag with a xmlns attributes and a parent tag with ns', () => {
-      const tag: Tag = {
+      const tag: SaxesTagPlain = {
         attributes: {
           'xmlns:a': '1',
           'xmlns:b': '2',
@@ -218,7 +202,7 @@ describe('RdfXmlParser', () => {
       { a: 'b' },
     ];
     const parser: any = {
-      saxStream: {
+      saxParser: {
         _parser: {
           column: 2,
           line: 1,
@@ -306,7 +290,7 @@ describe('RdfXmlParser', () => {
     });
 
     it('should delegate xml errors', () => {
-      return expect(parse(new RdfXmlParser({ strict: true }), `
+      return expect(parse(new RdfXmlParser(), `
 abc`)).rejects.toBeTruthy();
     });
 
@@ -2157,7 +2141,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://example.org/">
     <ex:prop1 ex:prop2="abc">
       <rdf:Description rdf:about="http://example.org/2" />
-    </ex:prop>
+    </ex:prop1>
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)

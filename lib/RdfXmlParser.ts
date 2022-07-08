@@ -1,7 +1,7 @@
 import * as RDF from "@rdfjs/types";
 import {resolve} from "relative-to-absolute-iri";
-import {createStream, SAXStream, Tag} from "sax";
-import {PassThrough, Transform, TransformCallback} from "stream";
+import {SaxesParser, SaxesTagPlain} from "saxes";
+import {PassThrough, Transform} from "readable-stream";
 import EventEmitter = NodeJS.EventEmitter;
 import {ParseError} from "./ParseError";
 import {DataFactory} from "rdf-data-factory";
@@ -52,9 +52,8 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly dataFactory: RDF.DataFactory;
   private readonly baseIRI: string;
   private readonly defaultGraph?: RDF.Quad_Graph;
-  private readonly strict?: boolean;
   private readonly allowDuplicateRdfIds?: boolean;
-  private readonly saxStream: SAXStream;
+  private readonly saxParser: SaxesParser;
 
   private readonly activeTagStack: IActiveTag[] = [];
   private readonly nodeIds: {[id: string]: boolean} = {};
@@ -76,12 +75,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       this.defaultGraph = this.dataFactory.defaultGraph();
     }
 
-    this.saxStream = createStream(this.strict, { xmlns: false, position: this.trackPosition });
-
-    // Workaround for an issue in SAX where non-strict mode either lower- or upper-cases all tags.
-    if (!this.strict) {
-      (<any> this.saxStream)._parser.looseCase = 'toString';
-    }
+    this.saxParser = new SaxesParser({ xmlns: false, position: this.trackPosition });
 
     this.attachSaxListeners();
   }
@@ -89,12 +83,12 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   /**
    * Parse the namespace of the given tag,
    * and take into account the namespace of the parent tag that was already parsed.
-   * @param {Tag} tag A tag to parse the namespace from.
+   * @param {SaxesTagPlain} tag A tag to parse the namespace from.
    * @param {IActiveTag} parentTag The parent tag, or null if this tag is the root.
    * @return {{[p: string]: string}[]} An array of namespaces,
    *                                   where the last ones have a priority over the first ones.
    */
-  public static parseNamespace(tag: Tag, parentTag?: IActiveTag): {[prefix: string]: string}[] {
+  public static parseNamespace(tag: SaxesTagPlain, parentTag?: IActiveTag): {[prefix: string]: string}[] {
     const thisNs: {[prefix: string]: string} = {};
     let hasNs: boolean = false;
     for (const attributeKey in tag.attributes) {
@@ -184,9 +178,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     return parsed;
   }
 
-  public _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
+  public _transform(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null, data?: any) => void) {
     try {
-      this.saxStream.write(chunk, encoding);
+      this.saxParser.write(chunk);
     } catch (e) {
       return callback(e);
     }
@@ -244,18 +238,18 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   }
 
   protected attachSaxListeners() {
-    this.saxStream.on('error', (error) => this.emit('error', error));
-    this.saxStream.on('opentag', this.onTag.bind(this));
-    this.saxStream.on('text', this.onText.bind(this));
-    this.saxStream.on('closetag', this.onCloseTag.bind(this));
-    this.saxStream.on('doctype', this.onDoctype.bind(this));
+    this.saxParser.on('error', (error) => this.emit('error', error));
+    this.saxParser.on('opentag', this.onTag.bind(this));
+    this.saxParser.on('text', this.onText.bind(this));
+    this.saxParser.on('closetag', this.onCloseTag.bind(this));
+    this.saxParser.on('doctype', this.onDoctype.bind(this));
   }
 
   /**
    * Handle the given tag.
-   * @param {QualifiedTag} tag A SAX tag.
+   * @param {SaxesTagPlain} tag A SAX tag.
    */
-  protected onTag(tag: Tag) {
+  protected onTag(tag: SaxesTagPlain) {
     // Get parent tag
     const parentTag: IActiveTag = this.activeTagStack.length
       ? this.activeTagStack[this.activeTagStack.length - 1] : null;
@@ -306,12 +300,12 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
 
   /**
    * Handle the given node element in resource-mode.
-   * @param {QualifiedTag} tag A SAX tag.
+   * @param {SaxesTagPlain} tag A SAX tag.
    * @param {IActiveTag} activeTag The currently active tag.
    * @param {IActiveTag} parentTag The parent tag or null.
    * @param {boolean} rootTag If we are currently processing the root tag.
    */
-  protected onTagResource(tag: Tag, activeTag: IActiveTag, parentTag: IActiveTag, rootTag: boolean) {
+  protected onTagResource(tag: SaxesTagPlain, activeTag: IActiveTag, parentTag: IActiveTag, rootTag: boolean) {
     const tagExpanded: IExpandedPrefix = RdfXmlParser.expandPrefixedTerm(tag.name, activeTag.ns, this);
 
     activeTag.childrenParseType = ParseType.PROPERTY;
@@ -342,7 +336,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     let subjectValueBlank: boolean = false;
     let explicitType: string = null;
     for (const attributeKey in tag.attributes) {
-      const attributeValue: string = tag.attributes[attributeKey];
+      const attributeValue = tag.attributes[attributeKey];
       const attributeKeyExpanded: IExpandedPrefix = RdfXmlParser.expandPrefixedTerm(attributeKey, activeTag.ns, this);
       if (parentTag && attributeKeyExpanded.uri === RdfXmlParser.RDF) {
         switch (attributeKeyExpanded.local) {
@@ -475,11 +469,11 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
 
   /**
    * Handle the given property element in property-mode.
-   * @param {QualifiedTag} tag A SAX tag.
+   * @param {SaxesTagPlain} tag A SAX tag.
    * @param {IActiveTag} activeTag The currently active tag.
    * @param {IActiveTag} parentTag The parent tag or null.
    */
-  protected onTagProperty(tag: Tag, activeTag: IActiveTag, parentTag: IActiveTag) {
+  protected onTagProperty(tag: SaxesTagPlain, activeTag: IActiveTag, parentTag: IActiveTag) {
     const tagExpanded: IExpandedPrefix = RdfXmlParser.expandPrefixedTerm(tag.name, activeTag.ns, this);
 
     activeTag.childrenParseType = ParseType.RESOURCE;
@@ -508,11 +502,11 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
     // Collect all attributes as triples
     // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
     let activeSubSubjectValue: string = null;
-    let subSubjectValueBlank: boolean = true;
+    let subSubjectValueBlank = true;
     const predicates: RDF.NamedNode[] = [];
     const objects: (RDF.NamedNode | RDF.BlankNode | RDF.Literal)[] = [];
     for (const propertyAttributeKey in tag.attributes) {
-      const propertyAttributeValue: string = tag.attributes[propertyAttributeKey];
+      const propertyAttributeValue = tag.attributes[propertyAttributeKey];
       const propertyAttributeKeyExpanded: IExpandedPrefix = RdfXmlParser
         .expandPrefixedTerm(propertyAttributeKey, activeTag.ns, this);
       if (propertyAttributeKeyExpanded.uri === RdfXmlParser.RDF) {
@@ -755,7 +749,7 @@ while ${attributeValue} and ${activeSubjectValue} where found.`);
    */
   protected onDoctype(doctype: string) {
     doctype.replace(/<!ENTITY\s+([^\s]+)\s+["']([^"']+)["']\s*>/g, (match, prefix, uri) => {
-      (<any> this.saxStream)._parser.ENTITIES[prefix] = uri;
+      this.saxParser.ENTITIES[prefix] = uri;
       return '';
     });
   }
@@ -780,10 +774,6 @@ export interface IRdfXmlParserArgs {
    * The default graph for constructing quads.
    */
   defaultGraph?: RDF.Term;
-  /**
-   * If the internal SAX parser should parse XML in strict mode, and error if it is invalid.
-   */
-  strict?: boolean;
   /**
    * If the internal position (line, column) should be tracked an emitted in error messages.
    */
