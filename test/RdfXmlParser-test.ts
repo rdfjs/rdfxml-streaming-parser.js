@@ -1,6 +1,6 @@
 import "jest-rdf";
 import * as RDF from "@rdfjs/types";
-import {SaxesParser, SaxesTagPlain} from "saxes";
+import {SaxesParser} from "saxes";
 import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 import {DataFactory} from "rdf-data-factory";
@@ -74,177 +74,6 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).baseIRI).toEqual('myBaseIRI');
     expect((<any> instance).defaultGraph).toBe(defaultGraph);
     expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
-  });
-
-  describe('#parseNamespace', () => {
-    it('should parse a tag without attributes', () => {
-      const tag: SaxesTagPlain = { name: 'a', isSelfClosing: false, attributes: {} };
-      return expect(RdfXmlParser.parseNamespace(tag, null)).toEqual([
-        {
-          xml: 'http://www.w3.org/XML/1998/namespace',
-        },
-      ]);
-    });
-
-    it('should parse a tag with non-xmlns attributes', () => {
-      const tag: SaxesTagPlain = {
-        attributes: {
-          a: 'b',
-          c: 'd',
-          xmln: 'a',
-          xmlnsss: 'abc',
-        },
-        isSelfClosing: false,
-        name: 'a',
-      };
-      return expect(RdfXmlParser.parseNamespace(tag, null)).toEqual([
-        {
-          xml: 'http://www.w3.org/XML/1998/namespace',
-        },
-      ]);
-    });
-
-    it('should parse a tag with a default xmlns attribute', () => {
-      const tag: SaxesTagPlain = {
-        attributes: {
-          xmlns: 'a',
-        },
-        isSelfClosing: false,
-        name: 'a',
-      };
-      return expect(RdfXmlParser.parseNamespace(tag, null)).toEqual([
-        {
-          xml: 'http://www.w3.org/XML/1998/namespace',
-        },
-        {
-          '': 'a',
-        },
-      ]);
-    });
-
-    it('should parse a tag with a xmlns attributes', () => {
-      const tag: SaxesTagPlain = {
-        attributes: {
-          'xmlns:a': '1',
-          'xmlns:b': '2',
-          'xmlns:cde': '3',
-        },
-        isSelfClosing: false,
-        name: 'a',
-      };
-      return expect(RdfXmlParser.parseNamespace(tag, null)).toEqual([
-        {
-          xml: 'http://www.w3.org/XML/1998/namespace',
-        },
-        {
-          a: '1',
-          b: '2',
-          cde: '3',
-        },
-      ]);
-    });
-
-    it('should parse a tag with a xmlns attributes and a parent tag without ns', () => {
-      const tag: SaxesTagPlain = {
-        attributes: {
-          'xmlns:a': '1',
-          'xmlns:b': '2',
-          'xmlns:cde': '3',
-        },
-        isSelfClosing: false,
-        name: 'a',
-      };
-      return expect(RdfXmlParser.parseNamespace(tag, {})).toEqual([
-        {
-          xml: 'http://www.w3.org/XML/1998/namespace',
-        },
-        {
-          a: '1',
-          b: '2',
-          cde: '3',
-        },
-      ]);
-    });
-
-    it('should parse a tag with a xmlns attributes and a parent tag with ns', () => {
-      const tag: SaxesTagPlain = {
-        attributes: {
-          'xmlns:a': '1',
-          'xmlns:b': '2',
-          'xmlns:cde': '3',
-        },
-        isSelfClosing: false,
-        name: 'a',
-      };
-      const parentTag = {
-        ns: [
-          { x: 'y' },
-        ],
-      };
-      return expect(RdfXmlParser.parseNamespace(tag, parentTag)).toEqual([
-        {
-          x: 'y',
-        },
-        {
-          a: '1',
-          b: '2',
-          cde: '3',
-        },
-      ]);
-    });
-  });
-
-  describe('#expandPrefixedTerm', () => {
-
-    const ns = [
-      { '': 'default' },
-      { x: 'y' },
-      { a: 'b' },
-    ];
-    const parser: any = {
-      saxParser: {
-        _parser: {
-          column: 2,
-          line: 1,
-        },
-      },
-    };
-
-    it('should expand a known prefix', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('a:abc', ns, parser))
-        .toEqual({ local: 'abc', prefix: 'a', uri: 'b' });
-    });
-
-    it('should expand a known prefix of the parent', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('x:abc', ns, parser))
-        .toEqual({ local: 'abc', prefix: 'x', uri: 'y' });
-    });
-
-    it('should error on an unknown prefix with default ns', () => {
-      return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', ns, parser))
-        .toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
-    });
-
-    it('should error on an unknown prefix without default ns', () => {
-      return expect(() => RdfXmlParser.expandPrefixedTerm('z:abc', [
-        { x: 'y' },
-        { a: 'b' },
-      ], parser)).toThrow(new Error('The prefix \'z\' in term \'z:abc\' was not bound.'));
-    });
-
-    it('should expand no prefix to the default ns', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('abc', ns, parser))
-        .toEqual({ local: 'abc', prefix: '', uri: 'default' });
-    });
-
-    it('should expand no prefix to the first default ns', () => {
-      return expect(RdfXmlParser.expandPrefixedTerm('abc', [
-        { '': 'default' },
-        { x: 'y' },
-        { '': 'firstdefault' },
-        { a: 'b' },
-      ], parser)).toEqual({ local: 'abc', prefix: '', uri: 'firstdefault' });
-    });
   });
 
   describe('#isValidIri', () => {
@@ -1037,7 +866,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop>1</ex:prop>
   <rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('The prefix \'ex\' in term \'ex:prop\' was not bound.'));
+          new Error('5:13: unbound namespace prefix: "ex".'));
       });
     });
 
