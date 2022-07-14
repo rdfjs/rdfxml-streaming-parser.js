@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.0"></a>
+## [v2.0.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.5.0...v2.0.0) - 2022-07-14
+
+This release has been marked as a major change due to the transition from Node's internal `stream` API to `readable-stream`.
+Most users should experience not breakages with this change.
+
+### Changed
+* [Uses native saxes namespace support](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/0989939c936f5cc353a4dd3e43301dfbbc35308c)
+* [Move away from Node.js built-ins](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/0afa4eaf9ff879a55e27e553d5d9d41f1ddbf6e2)
+* [Enable tree shaking in package.json](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/b98fd369d2eba026d6ec816e75ec7b5e85cc58af)
+
 <a name="v1.5.0"></a>
 ## [v1.5.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.4.0...v1.5.0) - 2021-08-11
 
