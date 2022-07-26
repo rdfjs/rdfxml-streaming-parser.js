@@ -95,6 +95,7 @@ Optionally, the following parameters can be set in the `RdfXmlParser` constructo
 * `strict`: If the internal SAX parser should parse XML in strict mode, and error if it is invalid. _(Default: `false`)_
 * `trackPosition`: If the internal position (line, column) should be tracked an emitted in error messages. _(Default: `false`)_
 * `allowDuplicateRdfIds`: By default [multiple occurrences of the same `rdf:ID` value are not allowed](https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-ID-xml-base). By setting this option to `true`, this uniqueness check can be disabled. _(Default: `false`)_
+* `validateUri`: By default, the parser validates each URI. _(Default: `true`)_
 
 ```javascript
 new RdfXmlParser({
@@ -104,6 +105,7 @@ new RdfXmlParser({
   strict: true,
   trackPosition: true,
   allowDuplicateRdfIds: true,
+  validateUri: true,
 });
 ```
 

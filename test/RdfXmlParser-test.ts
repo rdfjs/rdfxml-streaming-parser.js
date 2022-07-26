@@ -25,6 +25,8 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).baseIRI).toBe('');
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
+    expect((<any> instance).validateUri).toBeTruthy();
+    expect(instance.uriValidationEnabled).toBeTruthy();
   });
 
   it('should be constructable with empty args', () => {
@@ -34,6 +36,8 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).baseIRI).toBe('');
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
+    expect((<any> instance).validateUri).toBeTruthy();
+    expect(instance.uriValidationEnabled).toBeTruthy();
   });
 
   it('should be constructable with args with a custom data factory', () => {
@@ -76,6 +80,13 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
   });
 
+  it('should be constructible with args with disabled validateUri', () => {
+    const instance = new RdfXmlParser({ validateUri: false });
+    expect(instance).toBeInstanceOf(RdfXmlParser);
+    expect((<any> instance).validateUri).toBeFalsy();
+    expect(instance.uriValidationEnabled).toBeFalsy();
+  });
+
   describe('#isValidIri', () => {
     it('should be false for null', async () => {
       expect(RdfXmlParser.isValidIri(null)).toBeFalsy();
@@ -111,7 +122,6 @@ describe('RdfXmlParser', () => {
   });
 
   describe('a default instance', () => {
-
     let parser: any;
 
     beforeEach(() => {
@@ -2362,6 +2372,27 @@ abc`)).rejects.toBeTruthy();
         streamParser.end();
         expect(streamParser.read(1)).toBeFalsy();
         expect(streamParser.writable).toBeFalsy();
+      });
+    });
+  });
+
+  describe('an instance with disabled URI validation', () => {
+    let parser: any;
+
+    beforeEach(() => {
+      parser = new RdfXmlParser({ validateUri: false });
+    });
+
+    describe('#valueToUri', () => {
+
+      it('ignore a URI with an invalid scheme', () => {
+        expect(() => parser.valueToUri('%https://example.com/', {}))
+          .not.toThrow(new Error('Invalid URI: %https://example.com/'));
+      });
+
+      it('ignore a URI with an invalid character', () => {
+        expect(() => parser.valueToUri('https://example.com/<', {}))
+          .not.toThrow(new Error('Invalid URI: https://example.com/<'));
       });
     });
   });
