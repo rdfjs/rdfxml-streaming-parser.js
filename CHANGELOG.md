@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.1.0"></a>
+## [v2.1.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.0.0...v2.1.0) - 2022-07-27
+
+### Added
+* [Add option to disable URI validation, Closes #61](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/d51d0fd54957fad5f9d1a843d851b3d5a4c8cc80)
+
 <a name="v2.0.0"></a>
 ## [v2.0.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v1.5.0...v2.0.0) - 2022-07-14
 
