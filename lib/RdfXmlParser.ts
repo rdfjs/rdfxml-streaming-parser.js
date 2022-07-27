@@ -80,10 +80,6 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     this.attachSaxListeners();
   }
 
-  get uriValidationEnabled() {
-    return this.validateUri;
-  }
-
   /**
    * Check if the given IRI is valid.
    * @param {string} iri A potential IRI.
@@ -91,6 +87,10 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    */
   public static isValidIri(iri: string): boolean {
     return RdfXmlParser.IRI_REGEX.test(iri);
+  }
+
+  get uriValidationEnabled() {
+    return this.validateUri;
   }
 
   /**
