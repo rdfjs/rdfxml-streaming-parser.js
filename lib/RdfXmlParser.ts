@@ -50,6 +50,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly defaultGraph?: RDF.Quad_Graph;
   private readonly allowDuplicateRdfIds?: boolean;
   private readonly saxParser: SaxesParser;
+  private readonly validateUri: boolean;
 
   private readonly activeTagStack: IActiveTag[] = [];
   private readonly nodeIds: {[id: string]: boolean} = {};
@@ -70,6 +71,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     if (!this.defaultGraph) {
       this.defaultGraph = this.dataFactory.defaultGraph();
     }
+    if (this.validateUri !== false) {
+      this.validateUri = true;
+    }
 
     this.saxParser = new SaxesParser({ xmlns: true, position: this.trackPosition });
 
@@ -83,6 +87,10 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    */
   public static isValidIri(iri: string): boolean {
     return RdfXmlParser.IRI_REGEX.test(iri);
+  }
+
+  get uriValidationEnabled() {
+    return this.validateUri;
   }
 
   /**
@@ -140,7 +148,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    */
   public uriToNamedNode(uri: string): RDF.NamedNode {
     // Validate URI
-    if (!RdfXmlParser.isValidIri(uri)) {
+    if (this.uriValidationEnabled && !RdfXmlParser.isValidIri(uri)) {
       throw this.newParseError(`Invalid URI: ${uri}`);
     }
     return this.dataFactory.namedNode(uri);
@@ -688,6 +696,11 @@ export interface IRdfXmlParserArgs {
    * By setting this option to `true`, this uniqueness check can be disabled.
    */
   allowDuplicateRdfIds?: boolean;
+  /**
+   * Enables validation of all URIs. Will throw an Error in case of an invalid URI.
+   * By default, it is equal to true.
+   */
+  validateUri?: boolean;
 }
 
 export interface IActiveTag {
