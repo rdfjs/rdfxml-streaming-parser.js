@@ -7,6 +7,7 @@ import {DataFactory} from "rdf-data-factory";
 const streamifyString = require('streamify-string');
 const streamifyArray = require('streamify-array');
 import arrayifyStream from 'arrayify-stream';
+import {IriValidationStrategy} from "validate-iri";
 const quad = require('rdf-quad');
 const DF = new DataFactory();
 
@@ -26,7 +27,7 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
     expect((<any> instance).validateUri).toBeTruthy();
-    expect(instance.uriValidationEnabled).toBeTruthy();
+    expect((<any> instance).iriValidationStrategy).toEqual(IriValidationStrategy.Pragmatic);
   });
 
   it('should be constructable with empty args', () => {
@@ -37,7 +38,7 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).defaultGraph).toBe(DF.defaultGraph());
     expect((<any> instance).saxParser).toBeInstanceOf(SaxesParser);
     expect((<any> instance).validateUri).toBeTruthy();
-    expect(instance.uriValidationEnabled).toBeTruthy();
+    expect((<any> instance).iriValidationStrategy).toEqual(IriValidationStrategy.Pragmatic);
   });
 
   it('should be constructable with args with a custom data factory', () => {
@@ -84,41 +85,7 @@ describe('RdfXmlParser', () => {
     const instance = new RdfXmlParser({ validateUri: false });
     expect(instance).toBeInstanceOf(RdfXmlParser);
     expect((<any> instance).validateUri).toBeFalsy();
-    expect(instance.uriValidationEnabled).toBeFalsy();
-  });
-
-  describe('#isValidIri', () => {
-    it('should be false for null', async () => {
-      expect(RdfXmlParser.isValidIri(null)).toBeFalsy();
-    });
-
-    it('should be false for an empty string', async () => {
-      expect(RdfXmlParser.isValidIri('')).toBeFalsy();
-    });
-
-    it('should be false for an abc', async () => {
-      expect(RdfXmlParser.isValidIri('abc')).toBeFalsy();
-    });
-
-    it('should be true for an abc:def', async () => {
-      expect(RdfXmlParser.isValidIri('abc:def')).toBeTruthy();
-    });
-
-    it('should be true for an http://google.com', async () => {
-      expect(RdfXmlParser.isValidIri('http://google.com')).toBeTruthy();
-    });
-
-    it('should be false for an http://google.com<', async () => {
-      expect(RdfXmlParser.isValidIri('http://google.com<')).toBeFalsy();
-    });
-
-    it('should be false for an http://google .com', async () => {
-      expect(RdfXmlParser.isValidIri('http://google .com')).toBeFalsy();
-    });
-
-    it('should be false for an invalid scheme', async () => {
-      expect(RdfXmlParser.isValidIri('%http://google.com')).toBeFalsy();
-    });
+    expect((<any> instance).iriValidationStrategy).toEqual(IriValidationStrategy.None);
   });
 
   describe('a default instance', () => {
@@ -162,12 +129,12 @@ abc`)).rejects.toBeTruthy();
 
       it('create error on a URI with an invalid scheme', () => {
         expect(() => parser.valueToUri('%https://example.com/', {}))
-          .toThrow(new Error('Invalid URI: %https://example.com/'));
+          .toThrow(new Error('Invalid IRI according to RDF Turtle: \'%https://example.com/\''));
       });
 
       it('create error on a URI with an invalid character', () => {
         expect(() => parser.valueToUri('https://example.com/<', {}))
-          .toThrow(new Error('Invalid URI: https://example.com/<'));
+          .toThrow(new Error('Invalid IRI according to RDF Turtle: \'https://example.com/<\''));
       });
 
       it('create a named node from a relative URI when a baseIRI is given', () => {
@@ -397,7 +364,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop>1</ex:prop>
   <rdf:Description>
 </rdf:RDF>`)).rejects.toEqual(
-          new Error('Invalid URI: #abc'));
+          new Error('Invalid IRI according to RDF Turtle: \'#abc\''));
       });
 
       // 2.10
@@ -782,7 +749,7 @@ abc`)).rejects.toBeTruthy();
     <ns1:b rdf:resource="_:bnode"/>
   </rdf:Description>
 
-</rdf:RDF>`)).rejects.toEqual(new Error('Invalid URI: _:bnode'));
+</rdf:RDF>`)).rejects.toEqual(new Error('Invalid IRI according to RDF Turtle: \'_:bnode\''));
       });
 
       // Illegal XML name production
@@ -2372,6 +2339,17 @@ abc`)).rejects.toBeTruthy();
         streamParser.end();
         expect(streamParser.read(1)).toBeFalsy();
         expect(streamParser.writable).toBeFalsy();
+      });
+
+
+      it('should properly support XML encoded URIs', async () => {
+        expect(parse(parser, `<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ns0="b:">
+  <rdf:Description rdf:about="a:&#xA;">
+    <ns0:b rdf:resource="c:c"/>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toBeTruthy();
       });
     });
   });
