@@ -2,15 +2,12 @@ import * as RDF from "@rdfjs/types";
 import {resolve} from "relative-to-absolute-iri";
 import {SaxesParser, SaxesTagNS} from "saxes";
 import {PassThrough, Transform} from "readable-stream";
-import EventEmitter = NodeJS.EventEmitter;
 import {ParseError} from "./ParseError";
 import {DataFactory} from "rdf-data-factory";
+import {IriValidationStrategy, validateIri} from "validate-iri";
+import EventEmitter = NodeJS.EventEmitter;
 
 export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RDF.Stream> {
-
-  // Regex for valid IRIs
-  public static readonly IRI_REGEX: RegExp = /^([A-Za-z][A-Za-z0-9+-.]*):[^ "<>{}|\\\[\]`]*$/;
-
   public static readonly MIME_TYPE = 'application/rdf+xml';
 
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
@@ -51,6 +48,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly allowDuplicateRdfIds?: boolean;
   private readonly saxParser: SaxesParser;
   private readonly validateUri: boolean;
+  private readonly iriValidationStrategy: IriValidationStrategy;
 
   private readonly activeTagStack: IActiveTag[] = [];
   private readonly nodeIds: {[id: string]: boolean} = {};
@@ -74,23 +72,13 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     if (this.validateUri !== false) {
       this.validateUri = true;
     }
+    if (!this.iriValidationStrategy) {
+      this.iriValidationStrategy = this.validateUri ? IriValidationStrategy.Pragmatic : IriValidationStrategy.None;
+    }
 
     this.saxParser = new SaxesParser({ xmlns: true, position: this.trackPosition });
 
     this.attachSaxListeners();
-  }
-
-  /**
-   * Check if the given IRI is valid.
-   * @param {string} iri A potential IRI.
-   * @return {boolean} If the given IRI is valid.
-   */
-  public static isValidIri(iri: string): boolean {
-    return RdfXmlParser.IRI_REGEX.test(iri);
-  }
-
-  get uriValidationEnabled() {
-    return this.validateUri;
   }
 
   /**
@@ -148,8 +136,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    */
   public uriToNamedNode(uri: string): RDF.NamedNode {
     // Validate URI
-    if (this.uriValidationEnabled && !RdfXmlParser.isValidIri(uri)) {
-      throw this.newParseError(`Invalid URI: ${uri}`);
+    const uriValidationResult = validateIri(uri, this.iriValidationStrategy);
+    if (uriValidationResult instanceof Error) {
+      throw this.newParseError(uriValidationResult.message);
     }
     return this.dataFactory.namedNode(uri);
   }
@@ -701,6 +690,11 @@ export interface IRdfXmlParserArgs {
    * By default, it is equal to true.
    */
   validateUri?: boolean;
+  /**
+   * Allows to customize the used IRI validation strategy using the `IriValidationStrategy` enumeration.
+   * By default, the "pragmatic" strategy is used.
+   */
+  iriValidationStrategy?: IriValidationStrategy;
 }
 
 export interface IActiveTag {

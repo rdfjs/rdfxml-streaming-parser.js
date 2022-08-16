@@ -3981,6 +3981,11 @@ v8-to-istanbul@^9.0.1:
     "@types/istanbul-lib-coverage" "^2.0.1"
     convert-source-map "^1.6.0"
 
+validate-iri@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/validate-iri/-/validate-iri-1.0.0.tgz#a109600246e8a7515ecd238cdcddb7ca54b95d2d"
+  integrity sha512-4htbVgPOAS8RihVeyp/Pq5bnpKKhA2FcpsYTTION9rejFSZuIUX80SzO/+WMtSR3OVV1NFJx3J6DjrAZw83eCA==
+
 validate-npm-package-license@^3.0.1:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz#fc91f6b9c7ba15c857f4cb2c5defeec39d4f410a"

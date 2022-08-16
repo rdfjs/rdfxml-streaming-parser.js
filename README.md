@@ -90,12 +90,13 @@ myParser.import(myTextStream)
 Optionally, the following parameters can be set in the `RdfXmlParser` constructor:
 
 * `dataFactory`: A custom [RDFJS DataFactory](http://rdf.js.org/#datafactory-interface) to construct terms and triples. _(Default: `require('@rdfjs/data-model')`)_
-* `baseIRI`: An initital default base IRI. _(Default: `''`)_
+* `baseIRI`: An initial default base IRI. _(Default: `''`)_
 * `defaultGraph`: The default graph for constructing [quads](http://rdf.js.org/#dom-datafactory-quad). _(Default: `defaultGraph()`)_
 * `strict`: If the internal SAX parser should parse XML in strict mode, and error if it is invalid. _(Default: `false`)_
 * `trackPosition`: If the internal position (line, column) should be tracked an emitted in error messages. _(Default: `false`)_
 * `allowDuplicateRdfIds`: By default [multiple occurrences of the same `rdf:ID` value are not allowed](https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-ID-xml-base). By setting this option to `true`, this uniqueness check can be disabled. _(Default: `false`)_
 * `validateUri`: By default, the parser validates each URI. _(Default: `true`)_
+* `iriValidationStrategy`: Allows to customize the used IRI validation strategy using the `IriValidationStrategy` enumeration. _(Default: `IriValidationStrategy.Pragmatic`)_
 
 ```javascript
 new RdfXmlParser({
