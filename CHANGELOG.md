@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.0"></a>
+## [v2.2.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.1.0...v2.2.0) - 2022-08-16
+
+### Changed
+* [Use validate-iri.js to validate IRIs](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/ef628b45e5d315479dca2100c315e5e029383618)
+
 <a name="v2.1.0"></a>
 ## [v2.1.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.0.0...v2.1.0) - 2022-07-27
 
