@@ -96,7 +96,7 @@ Optionally, the following parameters can be set in the `RdfXmlParser` constructo
 * `trackPosition`: If the internal position (line, column) should be tracked an emitted in error messages. _(Default: `false`)_
 * `allowDuplicateRdfIds`: By default [multiple occurrences of the same `rdf:ID` value are not allowed](https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-ID-xml-base). By setting this option to `true`, this uniqueness check can be disabled. _(Default: `false`)_
 * `validateUri`: By default, the parser validates each URI. _(Default: `true`)_
-* `iriValidationStrategy`: Allows to customize the used IRI validation strategy using the `IriValidationStrategy` enumeration. _(Default: `IriValidationStrategy.Pragmatic`)_
+* `iriValidationStrategy`: Allows to customize the used IRI validation strategy using the `IriValidationStrategy` enumeration. IRI validation is handled by [validate-iri.js](https://github.com/comunica/validate-iri.js/).  _(Default: `IriValidationStrategy.Pragmatic`)_
 
 ```javascript
 new RdfXmlParser({
