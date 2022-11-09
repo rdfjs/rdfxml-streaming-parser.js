@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.1"></a>
+## [v2.2.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.0...v2.2.1) - 2022-11-09
+
+### Fixed
+* [Include source map files in packed files](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/409d2a46cf745a892adc5337764733ab912713c0)
+
 <a name="v2.2.0"></a>
 ## [v2.2.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.1.0...v2.2.0) - 2022-08-16
 
