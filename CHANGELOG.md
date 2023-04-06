@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.2"></a>
+## [v2.2.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.1...v2.2.2) - 2023-04-06
+
+### Fixed
+* [Fix xmlns without prefix being interpreted as property attribute](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/a33f030f78132950b5a87cfaac0c992de05e6c8c)
+
 <a name="v2.2.1"></a>
 ## [v2.2.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.0...v2.2.1) - 2022-11-09
 
