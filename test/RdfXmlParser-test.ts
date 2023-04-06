@@ -957,7 +957,6 @@ abc`)).rejects.toBeTruthy();
             ]);
       });
 
-
       it('DOCTYPE and ENTITY\'s', async () => {
         return expect(await parse(parser, `<!DOCTYPE rdf:RDF
 [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
