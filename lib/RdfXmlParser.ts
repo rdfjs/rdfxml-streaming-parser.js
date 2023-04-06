@@ -517,6 +517,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       // Interpret attributes at this point as properties via implicit blank nodes on the property,
       // but we ignore attributes that have no prefix or known expanded URI
       if (propertyAttribute.prefix !== 'xml' && propertyAttribute.prefix !== 'xmlns'
+          && (propertyAttribute.prefix !== '' || propertyAttribute.local !== 'xmlns')
         && propertyAttribute.uri) {
         if (parseType || activeTag.datatype) {
           throw this.newParseError(`Found illegal rdf:* properties on property element with attribute: ${

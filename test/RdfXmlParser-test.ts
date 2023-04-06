@@ -930,6 +930,22 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+
+      it('declaration of the namespace on the element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+       <title xmlns="http://purl.org/dc/terms/" xml:lang="en">RDF1.1 XML Syntax</title>
+  </rdf:Description>
+</rdf:RDF>`))
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar',
+                  'http://purl.org/dc/terms/title', '"RDF1.1 XML Syntax"@en'),
+            ]);
+      });
+
+
+
       it('DOCTYPE and ENTITY\'s', async () => {
         return expect(await parse(parser, `<!DOCTYPE rdf:RDF
 [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
