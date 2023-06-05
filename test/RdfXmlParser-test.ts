@@ -1,6 +1,6 @@
 import "jest-rdf";
 import * as RDF from "@rdfjs/types";
-import {SaxesParser} from "saxes";
+import {SaxesParser} from "@rubensworks/saxes";
 import {PassThrough} from "stream";
 import {RdfXmlParser} from "../lib/RdfXmlParser";
 import {DataFactory} from "rdf-data-factory";
