@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.3"></a>
+## [v2.2.3](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.2...v2.2.3) - 2023-06-05
+
+### Fixed
+* [Migrate to @rubensworks/saxes](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/620c08c3e3d7560ad9292abc258fd0ff958c67e7)
+    This fixes compilation errors on TypeScript 5
+
 <a name="v2.2.2"></a>
 ## [v2.2.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.1...v2.2.2) - 2023-04-06
 
