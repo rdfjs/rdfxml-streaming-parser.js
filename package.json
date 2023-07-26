@@ -92,7 +92,7 @@
   },
   "dependencies": {
     "@rdfjs/types": "*",
-    "@types/readable-stream": "^2.3.13",
+    "@types/readable-stream": "^4.0.0",
     "buffer": "^6.0.3",
     "rdf-data-factory": "^1.1.0",
     "relative-to-absolute-iri": "^1.0.0",
