@@ -39,7 +39,7 @@
     "@types/sax": "^1.0.1",
     "arrayify-stream": "^2.0.0",
     "coveralls": "^3.0.0",
-    "jest": "^28.1.2",
+    "jest": "^29.0.0",
     "jest-rdf": "^1.7.0",
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^1.2.2",
