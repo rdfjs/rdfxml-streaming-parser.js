@@ -1,6 +1,6 @@
 import * as RDF from "@rdfjs/types";
 import {resolve} from "relative-to-absolute-iri";
-import {SaxesParser, SaxesTagNS} from "saxes";
+import {SaxesParser, SaxesTagNS} from "@rubensworks/saxes";
 import {PassThrough, Transform} from "readable-stream";
 import {ParseError} from "./ParseError";
 import {DataFactory} from "rdf-data-factory";
