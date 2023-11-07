@@ -96,7 +96,7 @@
     "buffer": "^6.0.3",
     "rdf-data-factory": "^1.1.0",
     "relative-to-absolute-iri": "^1.0.0",
-    "readable-stream": "^4.0.0",
+    "readable-stream": "^4.4.2",
     "@rubensworks/saxes": "^6.0.1",
     "validate-iri": "^1.0.0"
   },
