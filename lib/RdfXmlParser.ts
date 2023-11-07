@@ -159,6 +159,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     this.saxParser.on('error', (error) => this.emit('error', error));
     this.saxParser.on('opentag', this.onTag.bind(this));
     this.saxParser.on('text', this.onText.bind(this));
+    this.saxParser.on('cdata', this.onText.bind(this));
     this.saxParser.on('closetag', this.onCloseTag.bind(this));
     this.saxParser.on('doctype', this.onDoctype.bind(this));
   }

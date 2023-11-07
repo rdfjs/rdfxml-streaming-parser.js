@@ -944,6 +944,18 @@ abc`)).rejects.toBeTruthy();
             ]);
       });
 
+      it('cdata support', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
+  <rdf:Description rdf:about="http://example.com">
+       <dct:title><![CDATA[A title with a <tag>]]></dct:title>
+  </rdf:Description>
+</rdf:RDF>`))
+            .toBeRdfIsomorphic([
+              quad('http://example.com',
+                  'http://purl.org/dc/terms/title', '"A title with a <tag>"'),
+            ]);
+      });
 
 
       it('DOCTYPE and ENTITY\'s', async () => {
