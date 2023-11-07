@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.0"></a>
+## [v2.3.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.3...v2.3.0) - 2023-11-07
+
+### Added
+* [Add CDATA support, Closes #52](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/41ac737e3fa64b3d8bb7fb589f59181bcddba4ae)
+
 <a name="v2.2.3"></a>
 ## [v2.2.3](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.2...v2.2.3) - 2023-06-05
 
