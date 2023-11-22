@@ -930,16 +930,54 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
-
-      it('declaration of the namespace on the element', async () => {
+      it('declaration of the default namespace on the property element', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+  <rdf:Description rdf:about="http://example.com">
        <title xmlns="http://purl.org/dc/terms/" xml:lang="en">RDF1.1 XML Syntax</title>
   </rdf:Description>
 </rdf:RDF>`))
             .toBeRdfIsomorphic([
-              quad('http://www.w3.org/TR/rdf-syntax-grammar',
+              quad('http://example.com',
+                  'http://purl.org/dc/terms/title', '"RDF1.1 XML Syntax"@en'),
+            ]);
+      });
+
+      it('declaration of the namespace on the property element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.com">
+       <dct:title xmlns:dct="http://purl.org/dc/terms/" xml:lang="en">RDF1.1 XML Syntax</dct:title>
+  </rdf:Description>
+</rdf:RDF>`))
+            .toBeRdfIsomorphic([
+              quad('http://example.com',
+                  'http://purl.org/dc/terms/title', '"RDF1.1 XML Syntax"@en'),
+            ]);
+      });
+
+      it('declaration of the namespace on the resource element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.com" xmlns:dct="http://purl.org/dc/terms/">
+       <dct:title xml:lang="en">RDF1.1 XML Syntax</dct:title>
+  </rdf:Description>
+</rdf:RDF>`))
+            .toBeRdfIsomorphic([
+              quad('http://example.com',
+                  'http://purl.org/dc/terms/title', '"RDF1.1 XML Syntax"@en'),
+            ]);
+      });
+
+      it('declaration of the default namespace on the resource element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://example.com" xmlns="http://purl.org/dc/terms/">
+       <title xml:lang="en">RDF1.1 XML Syntax</title>
+  </rdf:Description>
+</rdf:RDF>`))
+            .toBeRdfIsomorphic([
+              quad('http://example.com',
                   'http://purl.org/dc/terms/title', '"RDF1.1 XML Syntax"@en'),
             ]);
       });
