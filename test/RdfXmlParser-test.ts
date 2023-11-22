@@ -982,6 +982,19 @@ abc`)).rejects.toBeTruthy();
             ]);
       });
 
+
+      it('declaration of the namespace on a typed resource element', async () => {
+        return expect(await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <dct:Standard rdf:about="http://example.com" xmlns:dct="http://purl.org/dc/terms/">
+  </dct:Standard>
+</rdf:RDF>`))
+            .toBeRdfIsomorphic([
+              quad('http://example.com',
+                  'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://purl.org/dc/terms/Standard'),
+            ]);
+      });
+
       it('cdata support', async () => {
         return expect(await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
