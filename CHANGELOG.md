@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.4.0"></a>
+## [v2.4.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.3.0...v2.4.0) - 2023-11-24
+
+### Added
+* [Support namespace declarations on node elements and typed node elements (#72)](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/7e35733deb2e43382ba63aa6c9eab87b940262ed)
+
 <a name="v2.3.0"></a>
 ## [v2.3.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.2.3...v2.3.0) - 2023-11-07
 
