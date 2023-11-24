@@ -306,7 +306,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
       // Interpret attributes at this point as properties on this node,
       // but we ignore attributes that have no prefix or known expanded URI
-      if (attribute.prefix !== 'xml' && attribute.uri) {
+      if (attribute.prefix !== 'xml' && attribute.prefix !== 'xmlns'
+          && (attribute.prefix !== '' || attribute.local !== 'xmlns')
+        && attribute.uri) {
         predicates.push(this.uriToNamedNode(attribute.uri + attribute.local));
         objects.push(attribute.value);
       }
