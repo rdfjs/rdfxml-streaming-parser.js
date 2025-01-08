@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v3.0.1"></a>
+## [v3.0.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.0.0...v3.0.1) - 2025-01-08
+
+### Changed
+* [Bump to @types/readable-stream v4](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/22b40b7a2c407f20d56a6d29a6ab60b412481cf3)
+
 <a name="v3.0.0"></a>
 ## [v3.0.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v2.4.0...v3.0.0) - 2025-01-08
 
