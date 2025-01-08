@@ -1,6 +1,6 @@
 {
   "name": "rdfxml-streaming-parser",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "Streaming RDF/XML parser",
   "keywords": [
     "rdf/xml",
