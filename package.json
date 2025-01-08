@@ -95,7 +95,7 @@
     "version": "manual-git-changelog onversion"
   },
   "dependencies": {
-    "@types/readable-stream": "^2.3.13",
+    "@types/readable-stream": "^4.0.18",
     "buffer": "^6.0.3",
     "rdf-data-factory": "^2.0.0",
     "relative-to-absolute-iri": "^1.0.0",
