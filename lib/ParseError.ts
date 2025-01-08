@@ -1,4 +1,4 @@
-import {SaxesParser} from "saxes";
+import {SaxesParser} from "@rubensworks/saxes";
 import {RdfXmlParser} from "./RdfXmlParser";
 
 /**
