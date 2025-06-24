@@ -12,6 +12,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
 
   public static readonly RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
   public static readonly XML = 'http://www.w3.org/XML/1998/namespace';
+  public static readonly ITS = 'http://www.w3.org/2005/11/its';
   public static readonly FORBIDDEN_NODE_ELEMENTS = [
     'RDF',
     'ID',
@@ -155,6 +156,15 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     }
   }
 
+  /**
+   * Create a new literal term.
+   * @param value The literal value.
+   * @param activeTag The active tag.
+   */
+  public createLiteral(value: string, activeTag: IActiveTag): RDF.Literal {
+    return this.dataFactory.literal(value, activeTag.datatype ? activeTag.datatype : activeTag.language ? { language: activeTag.language, direction: activeTag.direction } : undefined)
+  }
+
   protected attachSaxListeners() {
     this.saxParser.on('error', (error) => this.emit('error', error));
     this.saxParser.on('opentag', this.onTag.bind(this));
@@ -201,8 +211,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
 
     const activeTag: IActiveTag = {};
     if (parentTag) {
-      // Inherit language scope and baseIRI from parent
+      // Inherit language scope, direction scope and baseIRI from parent
       activeTag.language = parentTag.language;
+      activeTag.direction = parentTag.direction;
       activeTag.baseIRI = parentTag.baseIRI;
     } else {
       activeTag.baseIRI = this.baseIRI;
@@ -302,6 +313,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
           activeTag.baseIRI = resolve(attribute.value, activeTag.baseIRI);
           continue;
         }
+      } else if (attribute.uri === RdfXmlParser.ITS && attribute.local === 'dir') {
+        this.setDirection(activeTag, attribute.value);
+        continue;
       }
 
       // Interpret attributes at this point as properties on this node,
@@ -372,8 +386,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
       // Emit all collected triples
       for (let i = 0; i < predicates.length; i++) {
-        const object: RDF.Term = this.dataFactory.literal(objects[i],
-          activeTag.datatype || activeTag.language);
+        const object: RDF.Term = this.createLiteral(objects[i], activeTag);
         this.emitTriple(activeTag.subject, predicates[i], object, parentTag.reifiedStatementId);
       }
       // Emit the rdf:type as named node instead of literal
@@ -515,6 +528,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         activeTag.language = propertyAttribute.value === ''
           ? null : propertyAttribute.value.toLowerCase();
         continue;
+      } else if (propertyAttribute.uri === RdfXmlParser.ITS && propertyAttribute.local === 'dir') {
+        this.setDirection(activeTag, propertyAttribute.value);
+        continue;
       }
 
       // Interpret attributes at this point as properties via implicit blank nodes on the property,
@@ -529,8 +545,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         activeTag.hadChildren = true;
         attributedProperty = true;
         predicates.push(this.uriToNamedNode(propertyAttribute.uri + propertyAttribute.local));
-        objects.push(this.dataFactory.literal(propertyAttribute.value,
-          activeTag.datatype || activeTag.language));
+        objects.push(this.createLiteral(propertyAttribute.value, activeTag));
       }
     }
 
@@ -641,8 +656,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     } else if (poppedTag.predicate) {
       if (!poppedTag.hadChildren && poppedTag.childrenParseType !== ParseType.PROPERTY) {
         // Property element contains text
-        this.emitTriple(poppedTag.subject, poppedTag.predicate,
-          this.dataFactory.literal(poppedTag.text || '', poppedTag.datatype || poppedTag.language),
+        this.emitTriple(poppedTag.subject, poppedTag.predicate, this.createLiteral(poppedTag.text || '', poppedTag),
           poppedTag.reifiedStatementId);
       } else if (!poppedTag.predicateEmitted) {
         // Emit remaining properties on an anonymous property element
@@ -664,6 +678,17 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       this.saxParser.ENTITIES[prefix] = uri;
       return '';
     });
+  }
+
+  private setDirection(activeTag: IActiveTag, value?: string) {
+    if (value) {
+      if (value !== 'ltr' && value !== 'rtl') {
+        throw this.newParseError(`Base directions must either be 'ltr' or 'rtl', while ${value} was found.`);
+      }
+      activeTag.direction = value;
+    } else {
+      delete activeTag.direction;
+    }
   }
 }
 
@@ -710,6 +735,7 @@ export interface IActiveTag {
   hadChildren?: boolean;
   text?: string;
   language?: string;
+  direction?: 'ltr' | 'rtl';
   datatype?: RDF.NamedNode;
   nodeId?: RDF.BlankNode;
   childrenParseType?: ParseType;

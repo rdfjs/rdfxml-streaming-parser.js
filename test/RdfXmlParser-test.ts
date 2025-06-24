@@ -1417,6 +1417,24 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.8
+      it('its:dir on node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us" its:dir="ltr">
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+                  '"RDF 1.1 XML Syntax"@en-us--ltr'),
+            ]);
+      });
+
       // 2.7
       it('xml:lang on nested node elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
@@ -1436,6 +1454,28 @@ abc`)).rejects.toBeTruthy();
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us'),
           ]);
+      });
+
+      // 2.8
+      it('its:dir on nested node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us" its:dir="ltr">
+    <ex:editor>
+      <rdf:Description>
+        <dc:title>RDF 1.1 XML Syntax</dc:title>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+              quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us--ltr'),
+            ]);
       });
 
       // 2.7
@@ -1459,6 +1499,28 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      // 2.8
+      it('its:dir resets on node elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us" its:dir="ltr">
+    <ex:editor>
+      <rdf:Description xml:lang="" its:dir="">
+        <dc:title>RDF 1.1 XML Syntax</dc:title>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+              quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
+            ]);
+      });
+
       // 2.7
       it('xml:lang on property elements', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
@@ -1474,6 +1536,24 @@ abc`)).rejects.toBeTruthy();
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
               '"RDF 1.1 XML Syntax"@en-us'),
           ]);
+      });
+
+      // 2.8
+      it('its:dir on property elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <dc:title xml:lang="en-us" its:dir="rtl">RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+                  '"RDF 1.1 XML Syntax"@en-us--rtl'),
+            ]);
       });
 
       // 2.7
@@ -1495,6 +1575,28 @@ abc`)).rejects.toBeTruthy();
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
           ]);
+      });
+
+      // 2.8
+      it('its:dir resets on property elements', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us" its:dir="rtl">
+    <ex:editor>
+      <rdf:Description>
+        <dc:title xml:lang="" its:dir="">RDF 1.1 XML Syntax</dc:title>
+      </rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
+              quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
+            ]);
       });
 
       // 2.7
@@ -1530,6 +1632,42 @@ abc`)).rejects.toBeTruthy();
             quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/title',
               '"The Tree"@en'),
           ]);
+      });
+
+      // 2.8
+      it('mixed its:dir usage', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+    <dc:title xml:lang="en" its:dir="ltr">RDF 1.1 XML Syntax</dc:title>
+    <dc:title xml:lang="en-US" its:dir="rtl">RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://example.org/buecher/baum" xml:lang="de" its:dir="ltr">
+    <dc:title>Der Baum</dc:title>
+    <dc:description>Das Buch ist außergewöhnlich</dc:description>
+    <dc:title xml:lang="en" its:dir="rtl">The Tree</dc:title>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+                  '"RDF 1.1 XML Syntax"'),
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+                  '"RDF 1.1 XML Syntax"@en--ltr'),
+              quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title',
+                  '"RDF 1.1 XML Syntax"@en-us--rtl'),
+              quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/title',
+                  '"Der Baum"@de--ltr'),
+              quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/description',
+                  '"Das Buch ist au\u00DFergew\u00F6hnlich"@de--ltr'),
+              quad('http://example.org/buecher/baum', 'http://purl.org/dc/elements/1.1/title',
+                  '"The Tree"@en--rtl'),
+            ]);
       });
 
       // 2.9
