@@ -48,6 +48,19 @@ fs.createReadStream('myfile.rdf')
   .on('end', () => console.log('All triples were parsed!'));
 ```
 
+### Read all version attribute values
+
+```javascript
+const myParser = new RdfXmlParser();
+
+fs.createReadStream('myfile.rdf')
+  .pipe(myParser)
+  .on('data', console.log)
+  .on('version', console.log) // Log rdf:version attribute values
+  .on('error', console.error)
+  .on('end', () => console.log('All triples were parsed!'));
+```
+
 ### Manually write strings to the parser
 
 ```javascript

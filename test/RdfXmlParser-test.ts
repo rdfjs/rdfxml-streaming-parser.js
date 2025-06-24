@@ -2473,6 +2473,55 @@ abc`)).rejects.toBeTruthy();
             quad('http://ex.org/i/subject', 'http://anon.org/o/hasBlankNode', '_:yellow"'),
           ]);
       });
+
+      it('rdf:version attribute on the root tag', async () => {
+        const cb = jest.fn();
+        parser.on('version', cb);
+        await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            rdf:version="1.2">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(cb).toHaveBeenCalledWith('1.2');
+      });
+
+      it('rdf:version attribute a property tag', async () => {
+        const cb = jest.fn();
+        parser.on('version', cb);
+        await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description>
+    <ex:editor rdf:version="1.2">
+      <rdf:Description></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(cb).toHaveBeenCalledWith('1.2');
+      });
+
+      it('rdf:version attribute an internal tag', async () => {
+        const cb = jest.fn();
+        parser.on('version', cb);
+        await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description rdf:version="1.2"></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(cb).toHaveBeenCalledWith('1.2');
+      });
     });
 
     describe('streaming-wise', () => {

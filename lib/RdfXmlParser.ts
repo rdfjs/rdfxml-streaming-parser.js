@@ -264,7 +264,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     let explicitType: string = null;
     for (const attributeKey in tag.attributes) {
       const attribute = tag.attributes[attributeKey];
-      if (parentTag && attribute.uri === RdfXmlParser.RDF) {
+      if (attribute.uri === RdfXmlParser.RDF && attribute.local === 'version') {
+        this.emit('version', attribute.value);
+      } else if (parentTag && attribute.uri === RdfXmlParser.RDF) {
         switch (attribute.local) {
         case 'about':
           if (activeSubjectValue) {
@@ -435,7 +437,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     const objects: (RDF.NamedNode | RDF.BlankNode | RDF.Literal)[] = [];
     for (const propertyAttributeKey in tag.attributes) {
       const propertyAttribute = tag.attributes[propertyAttributeKey];
-      if (propertyAttribute.uri === RdfXmlParser.RDF) {
+      if (propertyAttribute.uri === RdfXmlParser.RDF && propertyAttribute.local === 'version') {
+        this.emit('version', propertyAttribute.value);
+      } else if (propertyAttribute.uri === RdfXmlParser.RDF) {
         switch (propertyAttribute.local) {
         case 'resource':
           if (activeSubSubjectValue) {
