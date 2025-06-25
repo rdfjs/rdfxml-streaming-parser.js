@@ -676,7 +676,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         throw this.newParseError(`Expected exactly one triple term in rdf:parseType="Triple" but got ${poppedTag.childrenTripleTerms.length}`);
       }
       for (const tripleTerm of poppedTag.childrenTripleTerms) {
-        this.emitTriple(poppedTag.subject, poppedTag.predicate, tripleTerm, null, parentTag?.childrenTripleTerms);
+        this.emitTriple(poppedTag.subject, poppedTag.predicate, tripleTerm, null, parentTag.childrenTripleTerms);
       }
       poppedTag.predicateEmitted = true;
     }
@@ -715,7 +715,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
   private setDirection(activeTag: IActiveTag, value?: string) {
     if (value) {
       if (value !== 'ltr' && value !== 'rtl') {
-        throw this.newParseError(`Base directions must either be 'ltr' or 'rtl', while ${value} was found.`);
+        throw this.newParseError(`Base directions must either be 'ltr' or 'rtl', while '${value}' was found.`);
       }
       activeTag.direction = value;
     } else {

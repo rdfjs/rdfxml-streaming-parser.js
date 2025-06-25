@@ -846,6 +846,19 @@ abc`)).rejects.toBeTruthy();
           new Error('5:13: unbound namespace prefix: "ex".'));
       });
 
+      it('on illegal its:dir values', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xmlns:its="http://www.w3.org/2005/11/its">
+  <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar" xml:lang="en-us" its:dir="abc">
+    <dc:title>RDF 1.1 XML Syntax</dc:title>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+            new Error('Base directions must either be \'ltr\' or \'rtl\', while \'abc\' was found.'));
+      });
+
       it('on rdf:parseType="Triple" with missing predicate in triple term', async () => {
         return expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
