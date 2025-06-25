@@ -845,6 +845,40 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`)).rejects.toEqual(
           new Error('5:13: unbound namespace prefix: "ex".'));
       });
+
+      it('on rdf:parseType="Triple" with missing predicate in triple term', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://example.org/triples/"
+            rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:about="http://example.org/stuff/1.0/s">
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+            new Error('Expected exactly one triple term in rdf:parseType="Triple" but got 0'));
+      });
+
+      it('on rdf:parseType="Triple" with multiple triple terms', async () => {
+        return expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://example.org/triples/"
+            rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:about="http://example.org/stuff/1.0/s">
+        <ex:p rdf:resource="http://example.org/stuff/1.0/o1" />
+        <ex:p rdf:resource="http://example.org/stuff/1.0/o2" />
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toEqual(
+            new Error('Expected exactly one triple term in rdf:parseType="Triple" but got 2'));
+      });
     });
 
     describe('should parse', () => {
@@ -2521,6 +2555,124 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         return expect(cb).toHaveBeenCalledWith('1.2');
+      });
+
+      // 2.19
+      it('on property elements with rdf:parseType="Triple"', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/"
+         rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:about="http://example.org/stuff/1.0/s">
+        <ex:p rdf:resource="http://example.org/stuff/1.0/o" />
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad(
+                  'http://example.org/',
+                  'http://example.org/stuff/1.0/prop',
+                  '<<http://example.org/stuff/1.0/s http://example.org/stuff/1.0/p http://example.org/stuff/1.0/o>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:parseType="Triple" with blank subject', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/"
+         rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description>
+        <ex:p rdf:resource="http://example.org/stuff/1.0/o" />
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad(
+                  'http://example.org/',
+                  'http://example.org/stuff/1.0/prop',
+                  '<<_:b0 http://example.org/stuff/1.0/p http://example.org/stuff/1.0/o>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:parseType="Triple" with rdf:type', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/"
+         rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:type="http://example.org/stuff/1.0/t" />
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad(
+                  'http://example.org/',
+                  'http://example.org/stuff/1.0/prop',
+                  '<<_:b0 http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://example.org/stuff/1.0/t>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:parseType="Triple" and rdf:nodeID', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/"
+         rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:about="http://example.org/stuff/1.0/s">
+        <ex:p rdf:nodeID="b1" />
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad(
+                  'http://example.org/',
+                  'http://example.org/stuff/1.0/prop',
+                  '<<http://example.org/stuff/1.0/s http://example.org/stuff/1.0/p _:b0>>'),
+            ]);
+      });
+
+      it('on property elements with nested rdf:parseType="Triple"', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            xml:base="http://example.org/triples/"
+            rdf:version="1.2">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:about="http://example.org/stuff/1.0/s">
+        <ex:p rdf:parseType="Triple">
+          <rdf:Description rdf:about="http://example.org/stuff/1.0/s2">
+            <ex:p2 rdf:resource="http://example.org/stuff/1.0/o2" />
+          </rdf:Description>
+        </ex:p>
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad(
+                  'http://example.org/',
+                  'http://example.org/stuff/1.0/prop',
+                  '<<http://example.org/stuff/1.0/s http://example.org/stuff/1.0/p <<http://example.org/stuff/1.0/s2 http://example.org/stuff/1.0/p2 http://example.org/stuff/1.0/o2>>>>'),
+            ]);
       });
     });
 
