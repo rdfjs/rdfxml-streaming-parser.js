@@ -553,6 +553,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       } else if (propertyAttribute.uri === RdfXmlParser.ITS && propertyAttribute.local === 'dir') {
         this.setDirection(activeTag, propertyAttribute.value);
         continue;
+      } else if (propertyAttribute.uri === RdfXmlParser.ITS && propertyAttribute.local === 'version') {
+        // Ignore its:version
+        continue;
       }
 
       // Interpret attributes at this point as properties via implicit blank nodes on the property,

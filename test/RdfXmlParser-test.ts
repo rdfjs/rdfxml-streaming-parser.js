@@ -1597,7 +1597,7 @@ abc`)).rejects.toBeTruthy();
             xmlns:its="http://www.w3.org/2005/11/its"
             rdf:version="1.2">
   <rdf:Description rdf:about="http://www.w3.org/TR/rdf-syntax-grammar">
-    <dc:title xml:lang="en-us" its:dir="rtl">RDF 1.1 XML Syntax</dc:title>
+    <dc:title xml:lang="en-us" its:dir="rtl" its:version="2.0">RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
         return expect(array)
