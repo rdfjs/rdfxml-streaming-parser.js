@@ -350,7 +350,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     if (typedNode) {
       const type: RDF.NamedNode = this.uriToNamedNode(tag.uri + tag.local);
       this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-        type, parentTag ? parentTag.reifiedStatementId : null, activeTag.childrenTripleTerms);
+        type, parentTag ? parentTag.reifiedStatementId : null, activeTag.childrenTripleTerms, activeTag.reifier);
     }
 
     if (parentTag) {
@@ -359,10 +359,11 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         if (parentTag.childrenCollectionSubject) {
           // RDF:List-based properties
           const linkTerm: RDF.BlankNode = this.dataFactory.blankNode();
+          const restTerm = this.dataFactory.namedNode(RdfXmlParser.RDF + 'rest');
 
           // Emit <x> <p> <current-chain> OR <previous-chain> <rdf:rest> <current-chain>
           this.emitTriple(parentTag.childrenCollectionSubject,
-            parentTag.childrenCollectionPredicate, linkTerm, parentTag.reifiedStatementId, parentTag.childrenTripleTerms);
+            parentTag.childrenCollectionPredicate, linkTerm, parentTag.reifiedStatementId, parentTag.childrenTripleTerms, parentTag.childrenCollectionPredicate.equals(restTerm) ? null : parentTag.reifier);
 
           // Emit <current-chain> <rdf:first> value
           this.emitTriple(linkTerm, this.dataFactory.namedNode(RdfXmlParser.RDF + 'first'),
@@ -370,18 +371,18 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
           // Store <current-chain> in the parent node
           parentTag.childrenCollectionSubject = linkTerm;
-          parentTag.childrenCollectionPredicate = this.dataFactory.namedNode(RdfXmlParser.RDF + 'rest');
+          parentTag.childrenCollectionPredicate = restTerm;
         } else { // !parentTag.predicateEmitted
           // Set-based properties
           if (!parentTag.childrenTagsToTripleTerms) {
-            this.emitTriple(parentTag.subject, parentTag.predicate, activeTag.subject, parentTag.reifiedStatementId, parentTag.childrenTripleTerms);
+            this.emitTriple(parentTag.subject, parentTag.predicate, activeTag.subject, parentTag.reifiedStatementId, parentTag.childrenTripleTerms, parentTag.reifier);
             parentTag.predicateEmitted = true;
           }
 
           // Emit pending properties on the parent tag that had no defined subject yet.
           for (let i = 0; i < parentTag.predicateSubPredicates.length; i++) {
             this.emitTriple(activeTag.subject, parentTag.predicateSubPredicates[i],
-              parentTag.predicateSubObjects[i], null, parentTag.childrenTripleTerms);
+              parentTag.predicateSubObjects[i], null, parentTag.childrenTripleTerms, parentTag.reifier);
           }
 
           // Cleanup so we don't emit them again when the parent tag is closed
@@ -393,12 +394,12 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       // Emit all collected triples
       for (let i = 0; i < predicates.length; i++) {
         const object: RDF.Term = this.createLiteral(objects[i], activeTag);
-        this.emitTriple(activeTag.subject, predicates[i], object, parentTag.reifiedStatementId, parentTag.childrenTripleTerms);
+        this.emitTriple(activeTag.subject, predicates[i], object, parentTag.reifiedStatementId, parentTag.childrenTripleTerms, parentTag.reifier);
       }
       // Emit the rdf:type as named node instead of literal
       if (explicitType) {
         this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-          this.uriToNamedNode(explicitType), null, activeTag.childrenTripleTerms);
+          this.uriToNamedNode(explicitType), null, activeTag.childrenTripleTerms, activeTag.reifier);
       }
     }
   }
@@ -509,7 +510,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
             // Turn this property element into a node element
             const nestedBNode: RDF.BlankNode = this.dataFactory.blankNode();
-            this.emitTriple(activeTag.subject, activeTag.predicate, nestedBNode, activeTag.reifiedStatementId, activeTag.childrenTripleTerms);
+            this.emitTriple(activeTag.subject, activeTag.predicate, nestedBNode, activeTag.reifiedStatementId, activeTag.childrenTripleTerms, activeTag.reifier);
             activeTag.subject = nestedBNode;
             activeTag.predicate = null;
           } else if (propertyAttribute.value === 'Collection') {
@@ -535,6 +536,12 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
           this.validateNcname(propertyAttribute.value);
           activeTag.reifiedStatementId = this.valueToUri('#' + propertyAttribute.value, activeTag);
           this.claimNodeId(activeTag.reifiedStatementId);
+          continue;
+        case 'annotation':
+          activeTag.reifier = this.dataFactory.namedNode(propertyAttribute.value);
+          continue;
+        case 'annotationNodeID':
+          activeTag.reifier = this.dataFactory.blankNode(propertyAttribute.value);
           continue;
         }
       } else if (propertyAttribute.uri === RdfXmlParser.XML && propertyAttribute.local === 'lang') {
@@ -567,11 +574,11 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       const subjectParent: RDF.Term = activeTag.subject;
       activeTag.subject = subSubjectValueBlank
         ? this.dataFactory.blankNode(activeSubSubjectValue) : this.valueToUri(activeSubSubjectValue, activeTag);
-      this.emitTriple(subjectParent, activeTag.predicate, activeTag.subject, activeTag.reifiedStatementId, activeTag.childrenTripleTerms);
+      this.emitTriple(subjectParent, activeTag.predicate, activeTag.subject, activeTag.reifiedStatementId, activeTag.childrenTripleTerms, activeTag.reifier);
 
       // Emit our buffered triples
       for (let i = 0; i < predicates.length; i++) {
-        this.emitTriple(activeTag.subject, predicates[i], objects[i], null, activeTag.childrenTripleTerms);
+        this.emitTriple(activeTag.subject, predicates[i], objects[i], null, activeTag.childrenTripleTerms, activeTag.reifier);
       }
       activeTag.predicateEmitted = true;
     } else if (subSubjectValueBlank) {
@@ -592,14 +599,20 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
    * @param {Term} statementId An optional resource that identifies the triple.
    *                           If truthy, then the given triple will also be emitted reified.
    * @param childrenTripleTerms An optional array to push quads into instead of emitting them.
+   * @param reifier The reifier to emit this triple under.
    */
   protected emitTriple(subject: RDF.Quad_Subject, predicate: RDF.Quad_Predicate, object: RDF.Quad_Object,
-                       statementId?: RDF.NamedNode, childrenTripleTerms?: RDF.Quad[]) {
+                       statementId?: RDF.NamedNode,
+                       childrenTripleTerms?: RDF.Quad[],
+                       reifier?: RDF.NamedNode | RDF.BlankNode) {
     const quad = this.dataFactory.quad(subject, predicate, object, this.defaultGraph);
     if (childrenTripleTerms) {
       childrenTripleTerms.push(quad);
     } else {
       this.push(quad);
+    }
+    if (reifier) {
+      this.push(this.dataFactory.quad(reifier, this.dataFactory.namedNode(RdfXmlParser.RDF + 'reifies'), quad));
     }
 
     // Reify triple
@@ -676,7 +689,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         throw this.newParseError(`Expected exactly one triple term in rdf:parseType="Triple" but got ${poppedTag.childrenTripleTerms.length}`);
       }
       for (const tripleTerm of poppedTag.childrenTripleTerms) {
-        this.emitTriple(poppedTag.subject, poppedTag.predicate, tripleTerm, null, parentTag.childrenTripleTerms);
+        this.emitTriple(poppedTag.subject, poppedTag.predicate, tripleTerm, null, parentTag.childrenTripleTerms, parentTag.reifier);
       }
       poppedTag.predicateEmitted = true;
     }
@@ -689,11 +702,11 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       if (!poppedTag.hadChildren && poppedTag.childrenParseType !== ParseType.PROPERTY) {
         // Property element contains text
         this.emitTriple(poppedTag.subject, poppedTag.predicate, this.createLiteral(poppedTag.text || '', poppedTag),
-          poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms);
+          poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms, poppedTag.reifier);
       } else if (!poppedTag.predicateEmitted) {
         // Emit remaining properties on an anonymous property element
         const subject: RDF.Term = this.dataFactory.blankNode();
-        this.emitTriple(poppedTag.subject, poppedTag.predicate, subject, poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms);
+        this.emitTriple(poppedTag.subject, poppedTag.predicate, subject, poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms, poppedTag.reifier);
         for (let i = 0; i < poppedTag.predicateSubPredicates.length; i++) {
           this.emitTriple(subject, poppedTag.predicateSubPredicates[i], poppedTag.predicateSubObjects[i], null, poppedTag.childrenTripleTerms);
         }
@@ -782,6 +795,7 @@ export interface IActiveTag {
   childrenCollectionPredicate?: RDF.NamedNode;
   childrenTagsToTripleTerms?: boolean;
   childrenTripleTerms?: RDF.Quad[];
+  reifier?: RDF.NamedNode | RDF.BlankNode;
 }
 
 export enum ParseType {

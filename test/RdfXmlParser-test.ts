@@ -2687,6 +2687,178 @@ abc`)).rejects.toBeTruthy();
                   '<<http://example.org/stuff/1.0/s http://example.org/stuff/1.0/p <<http://example.org/stuff/1.0/s2 http://example.org/stuff/1.0/p2 http://example.org/stuff/1.0/o2>>>>'),
             ]);
       });
+
+      it('on property elements with rdf:annotation', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:annotation="http://example.org/triple1">blah</ex:prop>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/triple1">
+    <ex:prop>foo</ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop "blah">>'),
+              quad('http://example.org/triple1', 'http://example.org/stuff/1.0/prop', '"foo"'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotationNodeID', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:annotationNodeID="triple1">blah</ex:prop>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="triple1">
+    <ex:prop>foo</ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
+              quad('_:b0', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop "blah">>'),
+              quad('_:b0', 'http://example.org/stuff/1.0/prop', '"foo"'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation with empty object literal', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:annotation="http://example.org/triple1" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '""'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop "">>'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation with rdf:parseType="Resource"', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:annotation="http://example.org/triple1" rdf:parseType="Resource" />
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '_:b0'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop _:b0>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation with inline property', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+  <rdf:Description>
+    <eg:prop1 rdf:annotation="http://example.org/triple1" eg:prop2="val"></eg:prop1>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('_:b', 'http://example.org/prop2', '"val"'),
+              quad('_:c', 'http://example.org/prop1', '_:b'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<_:c http://example.org/prop1 _:b>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation with rdf:resource', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+ <rdf:Description rdf:about="http://example.org/">
+   <rdf:type rdf:annotation="http://example.org/triple1"
+             rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Resource"/>
+ </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Resource'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://www.w3.org/1999/02/22-rdf-syntax-ns#Resource>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation with rdf:nodeID', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/">
+
+ <rdf:Description rdf:about="http://example.org/">
+   <eg:prop rdf:annotation="http://example.org/triple1" rdf:nodeID="object"/>
+ </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/', 'http://example.org/prop', '_:object'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/prop _:object>>'),
+            ]);
+      });
+
+      it('on property elements with nested rdf:annotation', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns:eg="http://example.org/">
+
+ <rdf:Description rdf:about="http://example.org/a">
+   <eg:prop rdf:annotation="http://example.org/triple1">
+     <rdf:Description rdf:about="http://example.org/b">
+       <eg:prop rdf:annotation="http://example.org/triple2" rdf:resource="http://example.org/c"/>
+     </rdf:Description>
+   </eg:prop>
+ </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/b', 'http://example.org/prop', 'http://example.org/c'),
+              quad('http://example.org/triple2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/b http://example.org/prop http://example.org/c>>'),
+              quad('http://example.org/a', 'http://example.org/prop', 'http://example.org/b'),
+              quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/a http://example.org/prop http://example.org/b>>'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation over a collection', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:eg="http://example.org/eg#"
+    xml:base="http://example.com/">
+
+    <rdf:Description rdf:about="http://example.org/eg#eric">
+        <rdf:type rdf:parseType="Resource">
+            <eg:intersectionOf rdf:annotation="http://example.com/triple1" rdf:parseType="Collection">
+                <rdf:Description rdf:about="http://example.org/eg#Person"/>
+                <rdf:Description rdf:about="http://example.org/eg#Male"/>
+            </eg:intersectionOf>
+        </rdf:type>
+    </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/eg#eric', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '_:an0'),
+              quad('_:an0', 'http://example.org/eg#intersectionOf', '_:an1'),
+              quad('http://example.com/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<_:an0 http://example.org/eg#intersectionOf _:an1>>'),
+              quad('_:an1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/eg#Person'),
+              quad('_:an1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:an2'),
+              quad('_:an2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/eg#Male'),
+              quad('_:an2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+            ]);
+      });
     });
 
     describe('streaming-wise', () => {
