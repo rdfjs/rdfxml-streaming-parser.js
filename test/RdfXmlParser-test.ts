@@ -2617,6 +2617,24 @@ abc`)).rejects.toBeTruthy();
             ]);
       });
 
+      // 2.19
+      it('on property elements with rdf:parseType="Triple" without rdf:version', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/"
+         xml:base="http://example.org/triples/">
+  <rdf:Description rdf:about="http://example.org/">
+    <ex:prop rdf:parseType="Triple">
+      <rdf:Description rdf:about="http://example.org/stuff/1.0/s">
+        <ex:p rdf:resource="http://example.org/stuff/1.0/o" />
+      </rdf:Description>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([]);
+      });
+
       it('on property elements with rdf:parseType="Triple" with blank subject', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

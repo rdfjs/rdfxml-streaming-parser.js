@@ -691,7 +691,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     }
 
     // Set the triple term value if we were collecting triple terms
-    if (poppedTag.childrenTagsToTripleTerms && poppedTag.predicate) {
+    if (poppedTag.childrenTagsToTripleTerms && poppedTag.predicate && poppedTag.rdfVersion) {
       if (poppedTag.childrenTripleTerms.length !== 1) {
         throw this.newParseError(`Expected exactly one triple term in rdf:parseType="Triple" but got ${poppedTag.childrenTripleTerms.length}`);
       }
