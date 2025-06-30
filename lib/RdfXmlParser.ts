@@ -162,7 +162,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * @param activeTag The active tag.
    */
   public createLiteral(value: string, activeTag: IActiveTag): RDF.Literal {
-    return this.dataFactory.literal(value, activeTag.datatype ? activeTag.datatype : activeTag.language ? { language: activeTag.language, direction: activeTag.direction } : undefined)
+    return this.dataFactory.literal(value, activeTag.datatype ? activeTag.datatype : activeTag.language ? { language: activeTag.language, direction: activeTag.rdfVersion ? activeTag.direction : undefined } : undefined)
   }
 
   protected attachSaxListeners() {
@@ -217,6 +217,8 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       activeTag.baseIRI = parentTag.baseIRI;
       // Also inherit triple term collection array
       activeTag.childrenTripleTerms = parentTag.childrenTripleTerms;
+      // Also RDF version
+      activeTag.rdfVersion = parentTag.rdfVersion;
     } else {
       activeTag.baseIRI = this.baseIRI;
     }
@@ -267,7 +269,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     for (const attributeKey in tag.attributes) {
       const attribute = tag.attributes[attributeKey];
       if (attribute.uri === RdfXmlParser.RDF && attribute.local === 'version') {
-        this.emit('version', attribute.value);
+        this.setVersion(activeTag, attribute.value);
       } else if (parentTag && attribute.uri === RdfXmlParser.RDF) {
         switch (attribute.local) {
         case 'about':
@@ -443,7 +445,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     for (const propertyAttributeKey in tag.attributes) {
       const propertyAttribute = tag.attributes[propertyAttributeKey];
       if (propertyAttribute.uri === RdfXmlParser.RDF && propertyAttribute.local === 'version') {
-        this.emit('version', propertyAttribute.value);
+        this.setVersion(activeTag, propertyAttribute.value);
       } else if (propertyAttribute.uri === RdfXmlParser.RDF) {
         switch (propertyAttribute.local) {
         case 'resource':
@@ -735,6 +737,11 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       delete activeTag.direction;
     }
   }
+
+  private setVersion(activeTag: IActiveTag, version: string) {
+    activeTag.rdfVersion = version;
+    this.emit('version', version);
+  }
 }
 
 export interface IRdfXmlParserArgs {
@@ -796,6 +803,7 @@ export interface IActiveTag {
   childrenTagsToTripleTerms?: boolean;
   childrenTripleTerms?: RDF.Quad[];
   reifier?: RDF.NamedNode | RDF.BlankNode;
+  rdfVersion?: string;
 }
 
 export enum ParseType {
