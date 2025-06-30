@@ -2293,8 +2293,8 @@ abc`)).rejects.toBeTruthy();
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:ex="http://example.org/stuff/1.0/">
   <rdf:Description rdf:about="http://example.org/item01">
-    <ex:prop rdf:parseType="Literal">
-      <a:Box required="true" xmlns:a="http://example.org/a#">
+    <ex:prop rdf:parseType="Literal" xmlns:a="http://example.org/a#">
+      <a:Box required="true">
         <a:widget size="10" />
         <a:grommit id="23">abc</a:grommit>
       </a:Box>
@@ -2304,7 +2304,7 @@ abc`)).rejects.toBeTruthy();
         return expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
-              '"\n      <a:Box required="true" xmlns:a="http://example.org/a#">\n' +
+              '"\n      <a:Box xmlns:a="http://example.org/a#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/" required="true">\n' +
               '        <a:widget size="10"></a:widget>\n' +
               '        <a:grommit id="23">abc</a:grommit>\n' +
               '      </a:Box>\n' +
@@ -2326,7 +2326,7 @@ abc`)).rejects.toBeTruthy();
         return expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop',
-              '"\n      <Box></Box>\n' +
+              '"\n      <Box xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/"></Box>\n' +
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
           ]);
       });
@@ -2898,6 +2898,24 @@ abc`)).rejects.toBeTruthy();
               quad('_:an1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:an2'),
               quad('_:an2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/eg#Male'),
               quad('_:an2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+            ]);
+      });
+
+      it('on property elements with rdf:annotation with literal parse type', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="http://example.com/">
+
+  <rdf:Description rdf:about="http://www.example.org/a">
+    <eg:prop rdf:annotation="http://example.com/triple1" rdf:parseType="Literal"><br /></eg:prop>
+  </rdf:Description>
+
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://www.example.org/a', 'http://example.org/prop', '"<br xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:eg="http://example.org/"></br>"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
+              quad('http://example.com/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://www.example.org/a http://example.org/prop "<br xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:eg="http://example.org/"></br>"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>>'),
             ]);
       });
     });

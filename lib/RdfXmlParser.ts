@@ -193,6 +193,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       // Convert this tag to a string
       const tagName: string = tag.name;
       let attributes: string = '';
+      for (const { key, value } of parentTag.namespaces || []) {
+        attributes += ` ${key}="${value}"`;
+      }
       for (const attributeKey in tag.attributes) {
         attributes += ` ${attributeKey}="${tag.attributes[attributeKey].value}"`;
       }
@@ -211,13 +214,11 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
 
     const activeTag: IActiveTag = {};
     if (parentTag) {
-      // Inherit language scope, direction scope and baseIRI from parent
+      // Inherit properties from parent
       activeTag.language = parentTag.language;
       activeTag.direction = parentTag.direction;
       activeTag.baseIRI = parentTag.baseIRI;
-      // Also inherit triple term collection array
       activeTag.childrenTripleTerms = parentTag.childrenTripleTerms;
-      // Also RDF version
       activeTag.rdfVersion = parentTag.rdfVersion;
     } else {
       activeTag.baseIRI = this.baseIRI;
@@ -228,6 +229,19 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       this.onTagResource(tag, activeTag, parentTag, !parentTag);
     } else { // currentParseType === ParseType.PROPERTY
       this.onTagProperty(tag, activeTag, parentTag);
+    }
+
+    for (const attributeKey in tag.attributes) {
+      const attribute = tag.attributes[attributeKey];
+      if (attribute.prefix === 'xmlns') {
+        if (!activeTag.namespaces) {
+          activeTag.namespaces = [];
+        }
+        activeTag.namespaces.push({ key: `${attribute.prefix}:${attribute.local}`, value: attribute.value });
+      }
+    }
+    if (parentTag && parentTag.namespaces) {
+      activeTag.namespaces = [ ...activeTag.namespaces || [], ...parentTag.namespaces ];
     }
   }
 
@@ -809,6 +823,7 @@ export interface IActiveTag {
   childrenTripleTerms?: RDF.Quad[];
   reifier?: RDF.NamedNode | RDF.BlankNode;
   rdfVersion?: string;
+  namespaces?: { key: string; value: string }[];
 }
 
 export enum ParseType {
