@@ -2175,6 +2175,38 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      it('rdf:parseType="Collection" and rdf:ID', async () => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:eg="http://example.org/eg#"
+    xml:base="http://example.com/">
+
+    <rdf:Description rdf:about="http://example.org/eg#eric">
+        <rdf:type rdf:parseType="Resource">
+            <eg:intersectionOf rdf:ID="reif" rdf:parseType="Collection">
+                <rdf:Description rdf:about="http://example.org/eg#Person"/>
+                <rdf:Description rdf:about="http://example.org/eg#Male"/>
+            </eg:intersectionOf>
+        </rdf:type>
+    </rdf:Description>
+</rdf:RDF>`);
+        return expect(array)
+            .toBeRdfIsomorphic([
+              quad('http://example.org/eg#eric', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '_:b99_a0'),
+              quad('_:b99_a0', 'http://example.org/eg#intersectionOf', '_:b99_a1'),
+              quad('http://example.com/#reif', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject', '_:b99_a0'),
+              quad('http://example.com/#reif', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate', 'http://example.org/eg#intersectionOf'),
+              quad('http://example.com/#reif', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#object', '_:b99_a1'),
+              quad('http://example.com/#reif', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
+              quad('_:b99_a1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/eg#Person'),
+              quad('_:b99_a1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', '_:b99_a2'),
+              quad('_:b99_a2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/eg#Male'),
+              quad('_:b99_a2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
+            ]);
+      });
+
       // 2.17
       it('rdf:ID on a property with a literal to a reified statement', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>

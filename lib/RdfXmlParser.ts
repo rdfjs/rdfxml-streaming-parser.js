@@ -379,12 +379,13 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
           const restTerm = this.dataFactory.namedNode(RdfXmlParser.RDF + 'rest');
 
           // Emit <x> <p> <current-chain> OR <previous-chain> <rdf:rest> <current-chain>
+          const isRestTerm = parentTag.childrenCollectionPredicate.equals(restTerm);
           this.emitTriple(parentTag.childrenCollectionSubject,
-            parentTag.childrenCollectionPredicate, linkTerm, parentTag.reifiedStatementId, parentTag.childrenTripleTerms, parentTag.childrenCollectionPredicate.equals(restTerm) ? null : parentTag.reifier);
+            parentTag.childrenCollectionPredicate, linkTerm, isRestTerm ? null : parentTag.reifiedStatementId, parentTag.childrenTripleTerms, isRestTerm ? null : parentTag.reifier);
 
           // Emit <current-chain> <rdf:first> value
           this.emitTriple(linkTerm, this.dataFactory.namedNode(RdfXmlParser.RDF + 'first'),
-            activeTag.subject, activeTag.reifiedStatementId, activeTag.childrenTripleTerms);
+            activeTag.subject, null, activeTag.childrenTripleTerms);
 
           // Store <current-chain> in the parent node
           parentTag.childrenCollectionSubject = linkTerm;
@@ -718,7 +719,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     if (poppedTag.childrenCollectionSubject) {
       // Terminate the rdf:List
       this.emitTriple(poppedTag.childrenCollectionSubject, poppedTag.childrenCollectionPredicate,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms);
+        this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), null, poppedTag.childrenTripleTerms);
     } else if (poppedTag.predicate) {
       if (!poppedTag.hadChildren && poppedTag.childrenParseType !== ParseType.PROPERTY) {
         // Property element contains text
