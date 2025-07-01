@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v3.1.0"></a>
+## [v3.1.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.0.1...v3.1.0) - 2025-07-01
+
+### Added
+* Add RDF/XML 1.2 support
+    * [Don't emit triple terms without rdf:version](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/b828deb584436a4433c7d12a103dda9299971e8d)
+    * [Fix rdf:version being emitted as triple](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/a7122d680d50437e3e43de718333e9ccbfbb9a63)
+    * [Ignore its:version while parsing](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/4a55f6f7d848b7b9709d7b28f75bebfc9d19e82f)
+    * [Only use its:dir if rdf:version is 1.2](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/1ba33a31e92d628d5b417fef9706f0cdbf366c34)
+    * [Parse annotated triples](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/12680398c35150a27360646fcd2ec589ae91b254)
+    * [Parse triple terms](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/8e48c3a1bddb2339b3c849d0cd7749f91bb44921)
+    * [Parse rdf:version](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/f970161157e613a7e821d04b14b22d8e11b7a99a)
+    * [Parse base directions](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/265df9bee38f99586ab9836167ba5e785c3a3f24)
+
+### Fixed
+* [Include parent namespaces in XML Literals](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/98d6ab5a5d5d14f551cc0427ec85ebee3ed73acd)
+* [Fix invalid handling of rdf:parseType=Collection and rdf:ID](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/f73809a9949232a22318bd86f5a071422184925c)
+
 <a name="v3.0.1"></a>
 ## [v3.0.1](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.0.0...v3.0.1) - 2025-01-08
 
