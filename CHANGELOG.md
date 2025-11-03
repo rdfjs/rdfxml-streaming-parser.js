@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v3.2.0"></a>
+## [v3.2.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.1.0...v3.2.0) - 2025-11-03
+
+### Changed
+* [Emit error on unsupported versions](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/2b37d294d8a13de0fb9a8d6e2cd6fbad5a2b20b7)
+
 <a name="v3.1.0"></a>
 ## [v3.1.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.0.1...v3.1.0) - 2025-07-01
 
