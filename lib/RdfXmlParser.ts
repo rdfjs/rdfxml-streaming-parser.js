@@ -39,6 +39,11 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   ];
   // tslint:disable-next-line:max-line-length
   public static readonly NCNAME_MATCHER = /^([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_])([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_\-.0-9#xB7\u{0300}-\u{036F}\u{203F}-\u{2040}])*$/u;
+  public static SUPPORTED_VERSIONS: string[] = [
+    '1.2',
+    '1.2-basic',
+    '1.1',
+  ];
 
   public readonly trackPosition?: boolean;
 
@@ -50,6 +55,8 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly saxParser: SaxesParser;
   private readonly validateUri: boolean;
   private readonly iriValidationStrategy: IriValidationStrategy;
+  private readonly parseUnsupportedVersions: boolean;
+  private version: string | undefined;
 
   private readonly activeTagStack: IActiveTag[] = [];
   private readonly nodeIds: {[id: string]: boolean} = {};
@@ -76,6 +83,8 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     if (!this.iriValidationStrategy) {
       this.iriValidationStrategy = this.validateUri ? IriValidationStrategy.Pragmatic : IriValidationStrategy.None;
     }
+    this.parseUnsupportedVersions = !!args?.parseUnsupportedVersions;
+    this.version = args?.version;
 
     this.saxParser = new SaxesParser({ xmlns: true, position: this.trackPosition });
 
@@ -97,6 +106,14 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   }
 
   public _transform(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null, data?: any) => void) {
+    if (this.version) {
+      const version = this.version;
+      this.version = undefined;
+      if (!this.isValidVersion(version)) {
+        return callback(this.newParseError(`Detected unsupported version as media type parameter: ${version}`));
+      }
+    }
+
     try {
       this.saxParser.write(chunk);
     } catch (e) {
@@ -163,6 +180,14 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    */
   public createLiteral(value: string, activeTag: IActiveTag): RDF.Literal {
     return this.dataFactory.literal(value, activeTag.datatype ? activeTag.datatype : activeTag.language ? { language: activeTag.language, direction: activeTag.rdfVersion ? activeTag.direction : undefined } : undefined)
+  }
+
+  /**
+   * If the given version is valid for this parser to handle.
+   * @param version A version string.
+   */
+  public isValidVersion(version: string): boolean {
+    return this.parseUnsupportedVersions || RdfXmlParser.SUPPORTED_VERSIONS.includes(version);
   }
 
   protected attachSaxListeners() {
@@ -761,6 +786,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
   private setVersion(activeTag: IActiveTag, version: string) {
     activeTag.rdfVersion = version;
     this.emit('version', version);
+    if (!this.isValidVersion(version)) {
+      throw this.newParseError(`Detected unsupported version: ${version}`);
+    }
   }
 }
 
@@ -796,6 +824,14 @@ export interface IRdfXmlParserArgs {
    * By default, the "pragmatic" strategy is used.
    */
   iriValidationStrategy?: IriValidationStrategy;
+  /**
+   * If no error should be emitted on unsupported versions.
+   */
+  parseUnsupportedVersions?: boolean;
+  /**
+   * The version that was supplied as a media type parameter.
+   */
+  version?: string;
 }
 
 export interface IActiveTag {

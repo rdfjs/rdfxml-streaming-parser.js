@@ -2625,6 +2625,64 @@ abc`)).rejects.toBeTruthy();
         return expect(cb).toHaveBeenCalledWith('1.2');
       });
 
+      it('throws on an unsupported rdf:version', async () => {
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            rdf:version="1.2-unknown">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toThrow(`Detected unsupported version: 1.2-unknown`);
+      });
+
+      it('handles an unsupported rdf:version when parseUnsupportedVersions is true', async () => {
+        parser = new RdfXmlParser({ parseUnsupportedVersions: true });
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            rdf:version="1.2-unknown">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`)).resolves.toHaveLength(1);
+      });
+
+      it('throws on an unsupported version media type parameter', async () => {
+        parser = new RdfXmlParser({ version: '1.2-unknown' });
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`)).rejects.toThrow(`Detected unsupported version as media type parameter: 1.2-unknown`);
+      });
+
+      it('handles an unsupported media type parameter when parseUnsupportedVersions is true', async () => {
+        parser = new RdfXmlParser({ parseUnsupportedVersions: true, version: '1.2-unknown' });
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:ex="http://example.org/stuff/1.0/"
+            rdf:version="1.2-unknown">
+  <rdf:Description>
+    <ex:editor>
+      <rdf:Description></rdf:Description>
+    </ex:editor>
+  </rdf:Description>
+</rdf:RDF>`)).resolves.toHaveLength(1);
+      });
+
       // 2.19
       it('on property elements with rdf:parseType="Triple"', async () => {
         const array = await parse(parser, `<?xml version="1.0"?>

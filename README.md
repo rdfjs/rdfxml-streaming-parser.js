@@ -61,6 +61,9 @@ fs.createReadStream('myfile.rdf')
   .on('end', () => console.log('All triples were parsed!'));
 ```
 
+The error thrown for unsupported versions can be skipped
+by setting `parseUnsupportedVersions` to `true` when constructing the parser.
+
 ### Manually write strings to the parser
 
 ```javascript
@@ -110,6 +113,8 @@ Optionally, the following parameters can be set in the `RdfXmlParser` constructo
 * `allowDuplicateRdfIds`: By default [multiple occurrences of the same `rdf:ID` value are not allowed](https://www.w3.org/TR/rdf-syntax-grammar/#section-Syntax-ID-xml-base). By setting this option to `true`, this uniqueness check can be disabled. _(Default: `false`)_
 * `validateUri`: By default, the parser validates each URI. _(Default: `true`)_
 * `iriValidationStrategy`: Allows to customize the used IRI validation strategy using the `IriValidationStrategy` enumeration. IRI validation is handled by [validate-iri.js](https://github.com/comunica/validate-iri.js/).  _(Default: `IriValidationStrategy.Pragmatic`)_
+* `parseUnsupportedVersions`: If no error should be emitted on unsupported versions. _(Default: `false`)_
+* `version`: The version that was supplied as a media type parameter. _(Default: `undefined`)_
 
 ```javascript
 new RdfXmlParser({
@@ -120,6 +125,7 @@ new RdfXmlParser({
   trackPosition: true,
   allowDuplicateRdfIds: true,
   validateUri: true,
+  parseUnsupportedVersions: false,
 });
 ```
 
