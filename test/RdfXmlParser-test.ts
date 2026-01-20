@@ -88,6 +88,12 @@ describe('RdfXmlParser', () => {
     expect((<any> instance).iriValidationStrategy).toEqual(IriValidationStrategy.None);
   });
 
+  it('should be constructible with args with iriValidationStrategy', () => {
+    const instance = new RdfXmlParser({ iriValidationStrategy: IriValidationStrategy.Pragmatic });
+    expect(instance).toBeInstanceOf(RdfXmlParser);
+    expect((<any> instance).iriValidationStrategy).toEqual(IriValidationStrategy.Pragmatic);
+  });
+
   describe('a default instance', () => {
     let parser: any;
 
