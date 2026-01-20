@@ -48,7 +48,7 @@
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^1.2.2",
     "rdf-quad": "^2.0.0",
-    "rdf-test-suite": "^2.1.1",
+    "rdf-test-suite": "^2.1.4",
     "streamify-array": "^1.0.0",
     "streamify-string": "^1.0.1",
     "ts-jest": "^29.0.0",
@@ -90,8 +90,12 @@
     "build": "tsc",
     "validate": "npm ls",
     "prepare": "npm run build",
-    "spec": "rdf-test-suite spec/parser.js https://w3c.github.io/rdf-tests/rdf/rdf11/rdf-xml/manifest.ttl -c .rdf-test-suite-cache/",
-    "spec-earl": "rdf-test-suite spec/parser.js https://w3c.github.io/rdf-tests/rdf/rdf11/rdf-xml/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json > earl.ttl",
+    "spec": "npm run spec-1-1 && npm run spec-1-2",
+    "spec-1-1": "rdf-test-suite spec/parser.js https://w3c.github.io/rdf-tests/rdf/rdf11/rdf-xml/manifest.ttl -c .rdf-test-suite-cache/",
+    "spec-1-2": "rdf-test-suite spec/parser.js https://w3c.github.io/rdf-tests/rdf/rdf12/rdf-xml/eval/manifest.ttl -c .rdf-test-suite-cache/",
+    "spec-earl": "npm run spec-earl-1-1 && spec-earl-1-2",
+    "spec-earl-1-1": "rdf-test-suite spec/parser.js https://w3c.github.io/rdf-tests/rdf/rdf11/rdf-xml/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json > earl-1-1.ttl",
+    "spec-earl-1-2": "rdf-test-suite spec/parser.js https://w3c.github.io/rdf-tests/rdf/rdf12/rdf-xml/eval/manifest.ttl -c .rdf-test-suite-cache/ -o earl -p spec/earl-meta.json > earl-1-2.ttl",
     "version": "manual-git-changelog onversion"
   },
   "dependencies": {

@@ -70,6 +70,9 @@ jobs:
           - 20.x
           - 22.x
           - 24.x
+        spec:
+          - 1-1
+          - 1-2
     steps:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
@@ -82,12 +85,12 @@ jobs:
           path: |
             **/node_modules
             .rdf-test-suite-cache
-          key: ${{ runner.os }}-spec-modules-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-spec-${{ matrix.spec }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install dependencies
         run: yarn install
       - name: Build project
         run: yarn run build
-      - run: yarn run spec
+      - run: yarn run spec-${{ matrix.spec }}
 
   webpack:
     runs-on: ubuntu-latest

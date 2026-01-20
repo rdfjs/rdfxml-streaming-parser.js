@@ -2897,10 +2897,10 @@ ms@^2.1.3:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-n3@^1.22.3:
-  version "1.26.0"
-  resolved "https://registry.yarnpkg.com/n3/-/n3-1.26.0.tgz#3d69de04bee680b9ebec9dbc1033dc1e6934d351"
-  integrity sha512-SQknS0ua90rN+3RHuk8BeIqeYyqIH/+ecViZxX08jR4j6MugqWRjtONl3uANG/crWXnOM2WIqBJtjIhVYFha+w==
+n3@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/n3/-/n3-2.0.1.tgz#ab0a211aa5bffe909dae196c42d29cd708146e6d"
+  integrity sha512-Q6TPsTrlEoELXQ47tSBYcAZ800PQN9gtSImRUqQYoBq+Q7riIUAoDgf3tuMv6PuwonO86SBIx5GfOxvS4A/4kw==
   dependencies:
     buffer "^6.0.3"
     readable-stream "^4.0.0"
@@ -3227,10 +3227,10 @@ rdf-terms@^2.0.0:
     rdf-data-factory "^2.0.0"
     rdf-string "^2.0.0"
 
-rdf-test-suite@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/rdf-test-suite/-/rdf-test-suite-2.1.1.tgz#f5194b5779363f2c5ea1f7b9bc70e42b142f4f4b"
-  integrity sha512-TsGeAGaYHjlMm7NFHeRkgNS1fVC3XH233KySh7SLlA5/40R9ya+2sWea8LAllr9ob3lWq/+AmLx4FzKelwinlQ==
+rdf-test-suite@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/rdf-test-suite/-/rdf-test-suite-2.1.4.tgz#85a393867153e5975c1b804449e7bd970117804e"
+  integrity sha512-3zFZ5UbkS3AiZrfr+RJSm9y0koohmjKi3dSh6Uvyz6X7thHDRmhS00+q1EUgkQ5MNKNC9C6NlaE4+mWQsYSA8g==
   dependencies:
     "@types/json-stable-stringify" "^1.0.32"
     "@types/minimist" "^1.2.0"
@@ -3243,7 +3243,7 @@ rdf-test-suite@^2.1.1:
     jsonld-streaming-parser "^4.0.1"
     log-symbols "^4.0.0"
     minimist "^1.2.0"
-    n3 "^1.22.3"
+    n3 "^2.0.0"
     rdf-data-factory "^2.0.0"
     rdf-isomorphic "^2.0.0"
     rdf-literal "^2.0.0"
