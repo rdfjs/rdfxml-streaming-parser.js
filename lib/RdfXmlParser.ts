@@ -141,6 +141,20 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * @return {NamedNode} an IRI.
    */
   public valueToUri(value: string, activeTag: IActiveTag): RDF.NamedNode {
+    // Per RFC 3986, a URI scheme must be: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    // A forward slash is not allowed in a URI scheme, so a value like 'x/y:z' where a slash
+    // appears before the colon is unambiguously a relative IRI (not an absolute one).
+    // The relative-to-absolute-iri library incorrectly treats any value with a colon as absolute,
+    // so we must pre-process such relative IRIs containing a slash before the colon.
+    // We temporarily replace all colons with the null character U+0000 (which is illegal in XML
+    // and therefore can never legitimately appear in a parsed IRI value), resolve against the base
+    // IRI treating the whole value as a relative path, then restore the colons.
+    const colonPos = value.indexOf(':');
+    const firstSlashPos = value.indexOf('/');
+    if (colonPos > 0 && firstSlashPos >= 0 && firstSlashPos < colonPos) {
+      const encoded = value.split(':').join('\u0000');
+      return this.uriToNamedNode(resolve(encoded, activeTag.baseIRI).split('\u0000').join(':'));
+    }
     return this.uriToNamedNode(resolve(value, activeTag.baseIRI));
   }
 

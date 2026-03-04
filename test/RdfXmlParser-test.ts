@@ -211,6 +211,21 @@ abc`)).rejects.toBeTruthy();
         expect(parser.valueToUri('xyz', { baseIRI: 'http://aa/././a' }))
           .toEqual(DF.namedNode('http://aa/xyz'));
       });
+
+      it('create a named node from a relative IRI with a slash before the colon', () => {
+        expect(parser.valueToUri('x/y:z', { baseIRI: 'http://base.org/path/' }))
+          .toEqual(DF.namedNode('http://base.org/path/x/y:z'));
+      });
+
+      it('create a named node from a relative IRI with a slash before the colon and no trailing slash on base', () => {
+        expect(parser.valueToUri('x/y:z', { baseIRI: 'http://base.org/path' }))
+          .toEqual(DF.namedNode('http://base.org/x/y:z'));
+      });
+
+      it('create a named node from a relative IRI with multiple colons after a slash', () => {
+        expect(parser.valueToUri('x/y:z:w', { baseIRI: 'http://base.org/path/' }))
+          .toEqual(DF.namedNode('http://base.org/path/x/y:z:w'));
+      });
     });
 
     describe('should error with line numbers', () => {
@@ -2097,6 +2112,21 @@ abc`)).rejects.toBeTruthy();
             quad('http://document.org/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
               'http://example.org/type'),
             quad('http://document.org/#foo', 'http://example.org/value', 'http://document.org/relpath'),
+          ]);
+      });
+
+      // 2.14 - relative IRI with a colon after a slash
+      it('relative IRI containing a slash before a colon should be resolved against the base IRI', async () => {
+        const parserThis = new RdfXmlParser({ baseIRI: 'https://example.com/base/' });
+        const array = await parse(parserThis, `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:default="https://example.com/default/">
+  <default:C rdf:about="x/y:z"/>
+</rdf:RDF>`);
+        return expect(array)
+          .toBeRdfIsomorphic([
+            quad('https://example.com/base/x/y:z', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+              'https://example.com/default/C'),
           ]);
       });
 
