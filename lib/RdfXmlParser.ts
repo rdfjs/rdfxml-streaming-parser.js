@@ -117,7 +117,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     try {
       this.saxParser.write(chunk);
     } catch (e) {
-      return callback(e);
+      return callback(<Error>e);
     }
     callback();
   }
@@ -192,7 +192,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
 
   protected attachSaxListeners() {
     this.saxParser.on('error', (error) => this.emit('error', error));
-    this.saxParser.on('opentag', this.onTag.bind(this));
+    this.saxParser.on('opentag', <any> this.onTag.bind(this));
     this.saxParser.on('text', this.onText.bind(this));
     this.saxParser.on('cdata', this.onText.bind(this));
     this.saxParser.on('closetag', this.onCloseTag.bind(this));
