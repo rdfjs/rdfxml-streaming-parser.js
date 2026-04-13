@@ -21,3 +21,4 @@ coverage
 documentation
 .rdf-test-suite-cache
 earl.ttl
+.eslintcache
