@@ -1,10 +1,11 @@
-import * as RDF from "@rdfjs/types";
-import {resolve} from "relative-to-absolute-iri";
-import {SaxesParser, SaxesTagNS} from "@rubensworks/saxes";
-import {PassThrough, Transform} from "readable-stream";
-import {ParseError} from "./ParseError";
-import {DataFactory} from "rdf-data-factory";
-import {IriValidationStrategy, validateIri} from "validate-iri";
+import type * as RDF from '@rdfjs/types';
+import type { SaxesTagNS } from '@rubensworks/saxes';
+import { SaxesParser } from '@rubensworks/saxes';
+import { DataFactory } from 'rdf-data-factory';
+import { PassThrough, Transform } from 'readable-stream';
+import { resolve } from 'relative-to-absolute-iri';
+import { IriValidationStrategy, validateIri } from 'validate-iri';
+import { ParseError } from './ParseError';
 import EventEmitter = NodeJS.EventEmitter;
 
 export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RDF.Stream> {
@@ -25,6 +26,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     'aboutEach',
     'aboutEachPrefix',
   ];
+
   public static readonly FORBIDDEN_PROPERTY_ELEMENTS = [
     'Description',
     'RDF',
@@ -37,8 +39,20 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     'aboutEach',
     'aboutEachPrefix',
   ];
-  // tslint:disable-next-line:max-line-length
-  public static readonly NCNAME_MATCHER = /^([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_])([A-Za-z\xC0-\xD6\xD8-\xF6\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}_\-.0-9#xB7\u{0300}-\u{036F}\u{203F}-\u{2040}])*$/u;
+
+  private static readonly NCNAME_START_CHAR_CLASS =
+    'A-Za-z\\xC0-\\xD6\\xD8-\\xF6\\u{F8}-\\u{2FF}\\u{370}-\\u{37D}' +
+    '\\u{37F}-\\u{1FFF}\\u{200C}-\\u{200D}\\u{2070}-\\u{218F}\\u{2C00}-\\u{2FEF}' +
+    '\\u{3001}-\\u{D7FF}\\u{F900}-\\u{FDCF}\\u{FDF0}-\\u{FFFD}\\u{10000}-\\u{EFFFF}_';
+
+  private static readonly NCNAME_CHAR_CLASS =
+    `${RdfXmlParser.NCNAME_START_CHAR_CLASS}.0-9#xB7\\u{0300}-\\u{036F}\\u{203F}-\\u{2040}-`;
+
+  public static readonly NCNAME_MATCHER: RegExp = new RegExp(
+    `^([${RdfXmlParser.NCNAME_START_CHAR_CLASS}])([${RdfXmlParser.NCNAME_CHAR_CLASS}])*$`,
+    'u',
+  );
+
   public static SUPPORTED_VERSIONS: string[] = [
     '1.2',
     '1.2-basic',
@@ -52,16 +66,16 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly baseIRI: string;
   private readonly defaultGraph?: RDF.Quad_Graph;
   private readonly allowDuplicateRdfIds?: boolean;
-  private readonly saxParser: SaxesParser;
+  private readonly saxParser: SaxesParser<{ xmlns: true }>;
   private readonly validateUri: boolean;
   private readonly iriValidationStrategy: IriValidationStrategy;
   private readonly parseUnsupportedVersions: boolean;
   private version: string | undefined;
 
   private readonly activeTagStack: IActiveTag[] = [];
-  private readonly nodeIds: {[id: string]: boolean} = {};
+  private readonly nodeIds: Record<string, boolean> = {};
 
-  constructor(args?: IRdfXmlParserArgs) {
+  public constructor(args?: IRdfXmlParserArgs) {
     super({ readableObjectMode: true });
 
     if (args) {
@@ -77,13 +91,13 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     if (!this.defaultGraph) {
       this.defaultGraph = this.dataFactory.defaultGraph();
     }
-    if (this.validateUri !== false) {
+    if (this.validateUri === undefined) {
       this.validateUri = true;
     }
     if (!this.iriValidationStrategy) {
       this.iriValidationStrategy = this.validateUri ? IriValidationStrategy.Pragmatic : IriValidationStrategy.None;
     }
-    this.parseUnsupportedVersions = !!args?.parseUnsupportedVersions;
+    this.parseUnsupportedVersions = Boolean(args?.parseUnsupportedVersions);
     this.version = args?.version;
 
     this.saxParser = new SaxesParser({ xmlns: true, position: this.trackPosition });
@@ -98,14 +112,18 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    */
   public import(stream: EventEmitter): RDF.Stream {
     const output = new PassThrough({ readableObjectMode: true });
-    stream.on('error', (error) => parsed.emit('error', error));
-    stream.on('data', (data) => output.push(data));
+    stream.on('error', error => parsed.emit('error', error));
+    stream.on('data', data => output.push(data));
     stream.on('end', () => output.push(null));
     const parsed = output.pipe(new RdfXmlParser(this.options));
     return parsed;
   }
 
-  public _transform(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null, data?: any) => void) {
+  public _transform(
+    chunk: Buffer | string,
+    encoding: BufferEncoding,
+    callback: (error?: Error | null, data?: any) => void,
+  ): void {
     if (this.version) {
       const version = this.version;
       this.version = undefined;
@@ -166,7 +184,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * If it is invalid, an error will thrown emitted.
    * @param {string} value A value.
    */
-  public validateNcname(value: string) {
+  public validateNcname(value: string): void {
     // Validate term as an NCName: https://www.w3.org/TR/xml-names/#NT-NCName
     if (!RdfXmlParser.NCNAME_MATCHER.test(value)) {
       throw this.newParseError(`Not a valid NCName: ${value}`);
@@ -179,7 +197,16 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * @param activeTag The active tag.
    */
   public createLiteral(value: string, activeTag: IActiveTag): RDF.Literal {
-    return this.dataFactory.literal(value, activeTag.datatype ? activeTag.datatype : activeTag.language ? { language: activeTag.language, direction: activeTag.rdfVersion ? activeTag.direction : undefined } : undefined)
+    if (activeTag.datatype) {
+      return this.dataFactory.literal(value, activeTag.datatype);
+    }
+    if (activeTag.language) {
+      return this.dataFactory.literal(value, {
+        language: activeTag.language,
+        direction: activeTag.rdfVersion ? activeTag.direction : undefined,
+      });
+    }
+    return this.dataFactory.literal(value);
   }
 
   /**
@@ -190,9 +217,9 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     return this.parseUnsupportedVersions || RdfXmlParser.SUPPORTED_VERSIONS.includes(version);
   }
 
-  protected attachSaxListeners() {
-    this.saxParser.on('error', (error) => this.emit('error', error));
-    this.saxParser.on('opentag', <any> this.onTag.bind(this));
+  protected attachSaxListeners(): void {
+    this.saxParser.on('error', error => this.emit('error', error));
+    this.saxParser.on('opentag', this.onTag.bind(this));
     this.saxParser.on('text', this.onText.bind(this));
     this.saxParser.on('cdata', this.onText.bind(this));
     this.saxParser.on('closetag', this.onCloseTag.bind(this));
@@ -203,10 +230,11 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * Handle the given tag.
    * @param {SaxesTagNS} tag A SAX tag.
    */
-  protected onTag(tag: SaxesTagNS) {
+  protected onTag(tag: SaxesTagNS): void {
     // Get parent tag
-    const parentTag: IActiveTag = this.activeTagStack.length
-      ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+    const parentTag: IActiveTag = this.activeTagStack.length > 0 ?
+      this.activeTagStack.at(-1) :
+      null;
     let currentParseType = ParseType.RESOURCE;
     if (parentTag) {
       parentTag.hadChildren = true;
@@ -217,19 +245,19 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     if (parentTag && parentTag.childrenStringTags) {
       // Convert this tag to a string
       const tagName: string = tag.name;
-      let attributes: string = '';
+      let attributes = '';
       for (const { key, value } of parentTag.namespaces || []) {
         attributes += ` ${key}="${value}"`;
       }
       for (const attributeKey in tag.attributes) {
         attributes += ` ${attributeKey}="${tag.attributes[attributeKey].value}"`;
       }
-      const tagContents: string = `${tagName}${attributes}`;
-      const tagString: string = `<${tagContents}>`;
+      const tagContents = `${tagName}${attributes}`;
+      const tagString = `<${tagContents}>`;
       parentTag.childrenStringTags.push(tagString);
 
       // Inherit the array, so that deeper tags are appended to this same array
-      const stringActiveTag: IActiveTag = {childrenStringTags: parentTag.childrenStringTags};
+      const stringActiveTag: IActiveTag = { childrenStringTags: parentTag.childrenStringTags };
       stringActiveTag.childrenStringEmitClosingTag = `</${tagName}>`;
       this.activeTagStack.push(stringActiveTag);
 
@@ -252,7 +280,8 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
 
     if (currentParseType === ParseType.RESOURCE) {
       this.onTagResource(tag, activeTag, parentTag, !parentTag);
-    } else { // currentParseType === ParseType.PROPERTY
+    } else {
+      // CurrentParseType === ParseType.PROPERTY
       this.onTagProperty(tag, activeTag, parentTag);
     }
 
@@ -277,22 +306,23 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
    * @param {IActiveTag} parentTag The parent tag or null.
    * @param {boolean} rootTag If we are currently processing the root tag.
    */
-  protected onTagResource(tag: SaxesTagNS, activeTag: IActiveTag, parentTag: IActiveTag, rootTag: boolean) {
+  protected onTagResource(tag: SaxesTagNS, activeTag: IActiveTag, parentTag: IActiveTag, rootTag: boolean): void {
     activeTag.childrenParseType = ParseType.PROPERTY;
     // Assume that the current node is a _typed_ node (2.13), unless we find an rdf:Description as node name
-    let typedNode: boolean = true;
+    let typedNode = true;
     if (tag.uri === RdfXmlParser.RDF) {
       // Check forbidden property element names
-      if (!rootTag && RdfXmlParser.FORBIDDEN_NODE_ELEMENTS.indexOf(tag.local) >= 0) {
+      if (!rootTag && RdfXmlParser.FORBIDDEN_NODE_ELEMENTS.includes(tag.local)) {
         throw this.newParseError(`Illegal node element name: ${tag.local}`);
       }
 
       switch (tag.local) {
-      case 'RDF':
-        // Tags under <rdf:RDF> must always be resources
-        activeTag.childrenParseType = ParseType.RESOURCE;
-      case 'Description':
-        typedNode = false;
+        case 'RDF':
+          // Tags under <rdf:RDF> must always be resources
+          activeTag.childrenParseType = ParseType.RESOURCE;
+          // Falls through
+        case 'Description':
+          typedNode = false;
       }
     }
 
@@ -302,8 +332,8 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     // Collect all attributes as triples
     // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
     let activeSubjectValue: string = null;
-    let claimSubjectNodeId: boolean = false;
-    let subjectValueBlank: boolean = false;
+    let claimSubjectNodeId = false;
+    let subjectValueBlank = false;
     let explicitType: string = null;
     for (const attributeKey in tag.attributes) {
       const attribute = tag.attributes[attributeKey];
@@ -312,43 +342,43 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
         continue;
       } else if (parentTag && attribute.uri === RdfXmlParser.RDF) {
         switch (attribute.local) {
-        case 'about':
-          if (activeSubjectValue) {
-            throw this.newParseError(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+          case 'about':
+            if (activeSubjectValue) {
+              throw this.newParseError(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
 while ${attribute.value} and ${activeSubjectValue} where found.`);
-          }
-          activeSubjectValue = attribute.value;
-          continue;
-        case 'ID':
-          if (activeSubjectValue) {
-            throw this.newParseError(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+            }
+            activeSubjectValue = attribute.value;
+            continue;
+          case 'ID':
+            if (activeSubjectValue) {
+              throw this.newParseError(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
 while ${attribute.value} and ${activeSubjectValue} where found.`);
-          }
-          this.validateNcname(attribute.value);
-          activeSubjectValue = '#' + attribute.value;
-          claimSubjectNodeId = true;
-          continue;
-        case 'nodeID':
-          if (activeSubjectValue) {
-            throw this.newParseError(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
+            }
+            this.validateNcname(attribute.value);
+            activeSubjectValue = `#${attribute.value}`;
+            claimSubjectNodeId = true;
+            continue;
+          case 'nodeID':
+            if (activeSubjectValue) {
+              throw this.newParseError(`Only one of rdf:about, rdf:nodeID and rdf:ID can be present, \
 while ${attribute.value} and ${activeSubjectValue} where found.`);
-          }
-          this.validateNcname(attribute.value);
-          activeSubjectValue = attribute.value;
-          subjectValueBlank = true;
-          continue;
-        case 'bagID':
-          throw this.newParseError(`rdf:bagID is not supported.`);
-        case 'type':
+            }
+            this.validateNcname(attribute.value);
+            activeSubjectValue = attribute.value;
+            subjectValueBlank = true;
+            continue;
+          case 'bagID':
+            throw this.newParseError(`rdf:bagID is not supported.`);
+          case 'type':
           // Emit the rdf:type later as named node instead of the default literal
-          explicitType = attribute.value;
-          continue;
-        case 'aboutEach':
-          throw this.newParseError(`rdf:aboutEach is not supported.`);
-        case 'aboutEachPrefix':
-          throw this.newParseError(`rdf:aboutEachPrefix is not supported.`);
-        case 'li':
-          throw this.newParseError(`rdf:li on node elements are not supported.`);
+            explicitType = attribute.value;
+            continue;
+          case 'aboutEach':
+            throw this.newParseError(`rdf:aboutEach is not supported.`);
+          case 'aboutEachPrefix':
+            throw this.newParseError(`rdf:aboutEachPrefix is not supported.`);
+          case 'li':
+            throw this.newParseError(`rdf:li on node elements are not supported.`);
         }
       } else if (attribute.uri === RdfXmlParser.XML) {
         if (attribute.local === 'lang') {
@@ -366,9 +396,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
       // Interpret attributes at this point as properties on this node,
       // but we ignore attributes that have no prefix or known expanded URI
-      if (attribute.prefix !== 'xml' && attribute.prefix !== 'xmlns'
-          && (attribute.prefix !== '' || attribute.local !== 'xmlns')
-        && attribute.uri) {
+      if (attribute.prefix !== 'xml' && attribute.prefix !== 'xmlns' &&
+          (attribute.prefix !== '' || attribute.local !== 'xmlns') &&
+        attribute.uri) {
         predicates.push(this.uriToNamedNode(attribute.uri + attribute.local));
         objects.push(attribute.value);
       }
@@ -376,8 +406,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
     // Create the subject value _after_ all attributes have been processed
     if (activeSubjectValue !== null) {
-      activeTag.subject = subjectValueBlank
-        ? this.dataFactory.blankNode(activeSubjectValue) : this.valueToUri(activeSubjectValue, activeTag);
+      activeTag.subject = subjectValueBlank ?
+        this.dataFactory.blankNode(activeSubjectValue) :
+        this.valueToUri(activeSubjectValue, activeTag);
       if (claimSubjectNodeId) {
         this.claimNodeId(activeTag.subject);
       }
@@ -391,8 +422,14 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     // Emit the type if we're at a typed node
     if (typedNode) {
       const type: RDF.NamedNode = this.uriToNamedNode(tag.uri + tag.local);
-      this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-        type, parentTag ? parentTag.reifiedStatementId : null, activeTag.childrenTripleTerms, activeTag.reifier);
+      this.emitTriple(
+        activeTag.subject,
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}type`),
+        type,
+        parentTag ? parentTag.reifiedStatementId : null,
+        activeTag.childrenTripleTerms,
+        activeTag.reifier,
+      );
     }
 
     if (parentTag) {
@@ -401,31 +438,56 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         if (parentTag.childrenCollectionSubject) {
           // RDF:List-based properties
           const linkTerm: RDF.BlankNode = this.dataFactory.blankNode();
-          const restTerm = this.dataFactory.namedNode(RdfXmlParser.RDF + 'rest');
+          const restTerm = this.dataFactory.namedNode(`${RdfXmlParser.RDF}rest`);
 
           // Emit <x> <p> <current-chain> OR <previous-chain> <rdf:rest> <current-chain>
           const isRestTerm = parentTag.childrenCollectionPredicate.equals(restTerm);
-          this.emitTriple(parentTag.childrenCollectionSubject,
-            parentTag.childrenCollectionPredicate, linkTerm, isRestTerm ? null : parentTag.reifiedStatementId, parentTag.childrenTripleTerms, isRestTerm ? null : parentTag.reifier);
+          this.emitTriple(
+            parentTag.childrenCollectionSubject,
+            parentTag.childrenCollectionPredicate,
+            linkTerm,
+            isRestTerm ? null : parentTag.reifiedStatementId,
+            parentTag.childrenTripleTerms,
+            isRestTerm ? null : parentTag.reifier,
+          );
 
           // Emit <current-chain> <rdf:first> value
-          this.emitTriple(linkTerm, this.dataFactory.namedNode(RdfXmlParser.RDF + 'first'),
-            activeTag.subject, null, activeTag.childrenTripleTerms);
+          this.emitTriple(
+            linkTerm,
+            this.dataFactory.namedNode(`${RdfXmlParser.RDF}first`),
+            activeTag.subject,
+            null,
+            activeTag.childrenTripleTerms,
+          );
 
           // Store <current-chain> in the parent node
           parentTag.childrenCollectionSubject = linkTerm;
           parentTag.childrenCollectionPredicate = restTerm;
-        } else { // !parentTag.predicateEmitted
+        } else {
+          // !parentTag.predicateEmitted
           // Set-based properties
           if (!parentTag.childrenTagsToTripleTerms) {
-            this.emitTriple(parentTag.subject, parentTag.predicate, activeTag.subject, parentTag.reifiedStatementId, parentTag.childrenTripleTerms, parentTag.reifier);
+            this.emitTriple(
+              parentTag.subject,
+              parentTag.predicate,
+              activeTag.subject,
+              parentTag.reifiedStatementId,
+              parentTag.childrenTripleTerms,
+              parentTag.reifier,
+            );
             parentTag.predicateEmitted = true;
           }
 
           // Emit pending properties on the parent tag that had no defined subject yet.
           for (let i = 0; i < parentTag.predicateSubPredicates.length; i++) {
-            this.emitTriple(activeTag.subject, parentTag.predicateSubPredicates[i],
-              parentTag.predicateSubObjects[i], null, parentTag.childrenTripleTerms, parentTag.reifier);
+            this.emitTriple(
+              activeTag.subject,
+              parentTag.predicateSubPredicates[i],
+              parentTag.predicateSubObjects[i],
+              null,
+              parentTag.childrenTripleTerms,
+              parentTag.reifier,
+            );
           }
 
           // Cleanup so we don't emit them again when the parent tag is closed
@@ -435,14 +497,27 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       }
 
       // Emit all collected triples
-      for (let i = 0; i < predicates.length; i++) {
+      for (const [ i, predicate ] of predicates.entries()) {
         const object: RDF.Term = this.createLiteral(objects[i], activeTag);
-        this.emitTriple(activeTag.subject, predicates[i], object, parentTag.reifiedStatementId, parentTag.childrenTripleTerms, parentTag.reifier);
+        this.emitTriple(
+          activeTag.subject,
+          predicate,
+          object,
+          parentTag.reifiedStatementId,
+          parentTag.childrenTripleTerms,
+          parentTag.reifier,
+        );
       }
       // Emit the rdf:type as named node instead of literal
       if (explicitType) {
-        this.emitTriple(activeTag.subject, this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-          this.uriToNamedNode(explicitType), null, activeTag.childrenTripleTerms, activeTag.reifier);
+        this.emitTriple(
+          activeTag.subject,
+          this.dataFactory.namedNode(`${RdfXmlParser.RDF}type`),
+          this.uriToNamedNode(explicitType),
+          null,
+          activeTag.childrenTripleTerms,
+          activeTag.reifier,
+        );
       }
     }
   }
@@ -453,29 +528,30 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
    * @param {IActiveTag} activeTag The currently active tag.
    * @param {IActiveTag} parentTag The parent tag or null.
    */
-  protected onTagProperty(tag: SaxesTagNS, activeTag: IActiveTag, parentTag: IActiveTag) {
+  protected onTagProperty(tag: SaxesTagNS, activeTag: IActiveTag, parentTag: IActiveTag): void {
     activeTag.childrenParseType = ParseType.RESOURCE;
-    activeTag.subject = parentTag.subject; // Inherit parent subject
+    // Inherit parent subject
+    activeTag.subject = parentTag.subject;
     if (tag.uri === RdfXmlParser.RDF && tag.local === 'li') {
       // Convert rdf:li to rdf:_x
       if (!parentTag.listItemCounter) {
         parentTag.listItemCounter = 1;
       }
-      activeTag.predicate = this.uriToNamedNode(tag.uri + '_' + parentTag.listItemCounter++);
+      activeTag.predicate = this.uriToNamedNode(`${tag.uri}_${parentTag.listItemCounter++}`);
     } else {
       activeTag.predicate = this.uriToNamedNode(tag.uri + tag.local);
     }
 
     // Check forbidden property element names
-    if (tag.uri === RdfXmlParser.RDF
-      && RdfXmlParser.FORBIDDEN_PROPERTY_ELEMENTS.indexOf(tag.local) >= 0) {
+    if (tag.uri === RdfXmlParser.RDF &&
+      RdfXmlParser.FORBIDDEN_PROPERTY_ELEMENTS.includes(tag.local)) {
       throw this.newParseError(`Illegal property element name: ${tag.local}`);
     }
 
     activeTag.predicateSubPredicates = [];
     activeTag.predicateSubObjects = [];
-    let parseType: boolean = false;
-    let attributedProperty: boolean = false;
+    let parseType = false;
+    let attributedProperty = false;
 
     // Collect all attributes as triples
     // Assign subject value only after all attributes have been processed, because baseIRI may change the final val
@@ -490,107 +566,118 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
         continue;
       } else if (propertyAttribute.uri === RdfXmlParser.RDF) {
         switch (propertyAttribute.local) {
-        case 'resource':
-          if (activeSubSubjectValue) {
-            throw this.newParseError(`Found both rdf:resource (${propertyAttribute.value
+          case 'resource':
+            if (activeSubSubjectValue) {
+              throw this.newParseError(`Found both rdf:resource (${propertyAttribute.value
               }) and rdf:nodeID (${activeSubSubjectValue}).`);
-          }
-          if (parseType) {
-            throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:resource (${
+            }
+            if (parseType) {
+              throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:resource (${
                 propertyAttribute.value})`);
-          }
-          activeTag.hadChildren = true;
-          activeSubSubjectValue = propertyAttribute.value;
-          subSubjectValueBlank = false;
-          continue;
-        case 'datatype':
-          if (attributedProperty) {
-            throw this.newParseError(
-              `Found both non-rdf:* property attributes and rdf:datatype (${propertyAttribute.value}).`);
-          }
-          if (parseType) {
-            throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:datatype (${
-              propertyAttribute.value})`);
-          }
-          activeTag.datatype = this.valueToUri(propertyAttribute.value, activeTag);
-          continue;
-        case 'nodeID':
-          if (attributedProperty) {
-            throw this.newParseError(
-              `Found both non-rdf:* property attributes and rdf:nodeID (${propertyAttribute.value}).`);
-          }
-          if (activeTag.hadChildren) {
-            throw this.newParseError(`Found both rdf:resource and rdf:nodeID (${propertyAttribute.value}).`);
-          }
-          if (parseType) {
-            throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:nodeID (${
-              propertyAttribute.value})`);
-          }
-          this.validateNcname(propertyAttribute.value);
-          activeTag.hadChildren = true;
-          activeSubSubjectValue = propertyAttribute.value;
-          subSubjectValueBlank = true;
-          continue;
-        case 'bagID':
-          throw this.newParseError(`rdf:bagID is not supported.`);
-        case 'parseType':
-          // Validation
-          if (attributedProperty) {
-            throw this.newParseError(`rdf:parseType is not allowed when non-rdf:* property attributes are present`);
-          }
-          if (activeTag.datatype) {
-            throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:datatype (${
-              activeTag.datatype.value})`);
-          }
-          if (activeSubSubjectValue) {
-            throw this.newParseError(
-              `rdf:parseType is not allowed on property elements with rdf:nodeID or rdf:resource (${
-                activeSubSubjectValue})`);
-          }
-
-          if (propertyAttribute.value === 'Resource') {
-            parseType = true;
-            activeTag.childrenParseType = ParseType.PROPERTY;
-
-            // Turn this property element into a node element
-            const nestedBNode: RDF.BlankNode = this.dataFactory.blankNode();
-            this.emitTriple(activeTag.subject, activeTag.predicate, nestedBNode, activeTag.reifiedStatementId, activeTag.childrenTripleTerms, activeTag.reifier);
-            activeTag.subject = nestedBNode;
-            activeTag.predicate = null;
-          } else if (propertyAttribute.value === 'Collection') {
-            parseType = true;
-            // Interpret children as being part of an rdf:List
+            }
             activeTag.hadChildren = true;
-            activeTag.childrenCollectionSubject = activeTag.subject;
-            activeTag.childrenCollectionPredicate = activeTag.predicate;
+            activeSubSubjectValue = propertyAttribute.value;
             subSubjectValueBlank = false;
-          } else if (propertyAttribute.value === 'Literal') {
-            parseType = true;
-            // Interpret children as being part of a literal string
-            activeTag.childrenTagsToString = true;
-            activeTag.childrenStringTags = [];
-          } else if (propertyAttribute.value === 'Triple') {
-            parseType = true;
-            // Collect children as triple terms
-            activeTag.childrenTagsToTripleTerms = true;
-            activeTag.childrenTripleTerms = [];
-          }
-          continue;
-        case 'ID':
-          this.validateNcname(propertyAttribute.value);
-          activeTag.reifiedStatementId = this.valueToUri('#' + propertyAttribute.value, activeTag);
-          this.claimNodeId(activeTag.reifiedStatementId);
-          continue;
-        case 'annotation':
-          activeTag.reifier = this.dataFactory.namedNode(propertyAttribute.value);
-          continue;
-        case 'annotationNodeID':
-          activeTag.reifier = this.dataFactory.blankNode(propertyAttribute.value);
-          continue;
+            continue;
+          case 'datatype':
+            if (attributedProperty) {
+              throw this.newParseError(
+              `Found both non-rdf:* property attributes and rdf:datatype (${propertyAttribute.value}).`,
+              );
+            }
+            if (parseType) {
+              throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:datatype (${
+              propertyAttribute.value})`);
+            }
+            activeTag.datatype = this.valueToUri(propertyAttribute.value, activeTag);
+            continue;
+          case 'nodeID':
+            if (attributedProperty) {
+              throw this.newParseError(
+              `Found both non-rdf:* property attributes and rdf:nodeID (${propertyAttribute.value}).`,
+              );
+            }
+            if (activeTag.hadChildren) {
+              throw this.newParseError(`Found both rdf:resource and rdf:nodeID (${propertyAttribute.value}).`);
+            }
+            if (parseType) {
+              throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:nodeID (${
+              propertyAttribute.value})`);
+            }
+            this.validateNcname(propertyAttribute.value);
+            activeTag.hadChildren = true;
+            activeSubSubjectValue = propertyAttribute.value;
+            subSubjectValueBlank = true;
+            continue;
+          case 'bagID':
+            throw this.newParseError(`rdf:bagID is not supported.`);
+          case 'parseType':
+          // Validation
+            if (attributedProperty) {
+              throw this.newParseError(`rdf:parseType is not allowed when non-rdf:* property attributes are present`);
+            }
+            if (activeTag.datatype) {
+              throw this.newParseError(`rdf:parseType is not allowed on property elements with rdf:datatype (${
+              activeTag.datatype.value})`);
+            }
+            if (activeSubSubjectValue) {
+              throw this.newParseError(
+              `rdf:parseType is not allowed on property elements with rdf:nodeID or rdf:resource (${
+                activeSubSubjectValue})`,
+              );
+            }
+
+            if (propertyAttribute.value === 'Resource') {
+              parseType = true;
+              activeTag.childrenParseType = ParseType.PROPERTY;
+
+              // Turn this property element into a node element
+              const nestedBNode: RDF.BlankNode = this.dataFactory.blankNode();
+              this.emitTriple(
+                activeTag.subject,
+                activeTag.predicate,
+                nestedBNode,
+                activeTag.reifiedStatementId,
+                activeTag.childrenTripleTerms,
+                activeTag.reifier,
+              );
+              activeTag.subject = nestedBNode;
+              activeTag.predicate = null;
+            } else if (propertyAttribute.value === 'Collection') {
+              parseType = true;
+              // Interpret children as being part of an rdf:List
+              activeTag.hadChildren = true;
+              activeTag.childrenCollectionSubject = activeTag.subject;
+              activeTag.childrenCollectionPredicate = activeTag.predicate;
+              subSubjectValueBlank = false;
+            } else if (propertyAttribute.value === 'Literal') {
+              parseType = true;
+              // Interpret children as being part of a literal string
+              activeTag.childrenTagsToString = true;
+              activeTag.childrenStringTags = [];
+            } else if (propertyAttribute.value === 'Triple') {
+              parseType = true;
+              // Collect children as triple terms
+              activeTag.childrenTagsToTripleTerms = true;
+              activeTag.childrenTripleTerms = [];
+            }
+            continue;
+          case 'ID':
+            this.validateNcname(propertyAttribute.value);
+            activeTag.reifiedStatementId = this.valueToUri(`#${propertyAttribute.value}`, activeTag);
+            this.claimNodeId(activeTag.reifiedStatementId);
+            continue;
+          case 'annotation':
+            activeTag.reifier = this.dataFactory.namedNode(propertyAttribute.value);
+            continue;
+          case 'annotationNodeID':
+            activeTag.reifier = this.dataFactory.blankNode(propertyAttribute.value);
+            continue;
         }
       } else if (propertyAttribute.uri === RdfXmlParser.XML && propertyAttribute.local === 'lang') {
-        activeTag.language = propertyAttribute.value === ''
-          ? null : propertyAttribute.value.toLowerCase();
+        activeTag.language = propertyAttribute.value === '' ?
+          null :
+          propertyAttribute.value.toLowerCase();
         continue;
       } else if (propertyAttribute.uri === RdfXmlParser.ITS && propertyAttribute.local === 'dir') {
         this.setDirection(activeTag, propertyAttribute.value);
@@ -602,9 +689,9 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
       // Interpret attributes at this point as properties via implicit blank nodes on the property,
       // but we ignore attributes that have no prefix or known expanded URI
-      if (propertyAttribute.prefix !== 'xml' && propertyAttribute.prefix !== 'xmlns'
-          && (propertyAttribute.prefix !== '' || propertyAttribute.local !== 'xmlns')
-        && propertyAttribute.uri) {
+      if (propertyAttribute.prefix !== 'xml' && propertyAttribute.prefix !== 'xmlns' &&
+          (propertyAttribute.prefix !== '' || propertyAttribute.local !== 'xmlns') &&
+        propertyAttribute.uri) {
         if (parseType || activeTag.datatype) {
           throw this.newParseError(`Found illegal rdf:* properties on property element with attribute: ${
             propertyAttribute.value}`);
@@ -619,13 +706,28 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     // Create the subject value _after_ all attributes have been processed
     if (activeSubSubjectValue !== null) {
       const subjectParent: RDF.Term = activeTag.subject;
-      activeTag.subject = subSubjectValueBlank
-        ? this.dataFactory.blankNode(activeSubSubjectValue) : this.valueToUri(activeSubSubjectValue, activeTag);
-      this.emitTriple(subjectParent, activeTag.predicate, activeTag.subject, activeTag.reifiedStatementId, activeTag.childrenTripleTerms, activeTag.reifier);
+      activeTag.subject = subSubjectValueBlank ?
+        this.dataFactory.blankNode(activeSubSubjectValue) :
+        this.valueToUri(activeSubSubjectValue, activeTag);
+      this.emitTriple(
+        subjectParent,
+        activeTag.predicate,
+        activeTag.subject,
+        activeTag.reifiedStatementId,
+        activeTag.childrenTripleTerms,
+        activeTag.reifier,
+      );
 
       // Emit our buffered triples
-      for (let i = 0; i < predicates.length; i++) {
-        this.emitTriple(activeTag.subject, predicates[i], objects[i], null, activeTag.childrenTripleTerms, activeTag.reifier);
+      for (const [ i, predicate ] of predicates.entries()) {
+        this.emitTriple(
+          activeTag.subject,
+          predicate,
+          objects[i],
+          null,
+          activeTag.childrenTripleTerms,
+          activeTag.reifier,
+        );
       }
       activeTag.predicateEmitted = true;
     } else if (subSubjectValueBlank) {
@@ -648,10 +750,14 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
    * @param childrenTripleTerms An optional array to push quads into instead of emitting them.
    * @param reifier The reifier to emit this triple under.
    */
-  protected emitTriple(subject: RDF.Quad_Subject, predicate: RDF.Quad_Predicate, object: RDF.Quad_Object,
-                       statementId?: RDF.NamedNode,
-                       childrenTripleTerms?: RDF.Quad[],
-                       reifier?: RDF.NamedNode | RDF.BlankNode) {
+  protected emitTriple(
+    subject: RDF.Quad_Subject,
+    predicate: RDF.Quad_Predicate,
+    object: RDF.Quad_Object,
+    statementId?: RDF.NamedNode,
+    childrenTripleTerms?: RDF.Quad[],
+    reifier?: RDF.NamedNode | RDF.BlankNode,
+  ): void {
     const quad = this.dataFactory.quad(subject, predicate, object, this.defaultGraph);
     if (childrenTripleTerms) {
       childrenTripleTerms.push(quad);
@@ -659,21 +765,35 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       this.push(quad);
     }
     if (reifier) {
-      this.push(this.dataFactory.quad(reifier, this.dataFactory.namedNode(RdfXmlParser.RDF + 'reifies'), quad));
+      this.push(this.dataFactory.quad(reifier, this.dataFactory.namedNode(`${RdfXmlParser.RDF}reifies`), quad));
     }
 
     // Reify triple
     if (statementId) {
-      this.push(this.dataFactory.quad(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'type'),
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'Statement'),
-        this.defaultGraph));
-      this.push(this.dataFactory.quad(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'subject'), subject, this.defaultGraph));
-      this.push(this.dataFactory.quad(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'predicate'), predicate, this.defaultGraph));
-      this.push(this.dataFactory.quad(statementId,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'object'), object, this.defaultGraph));
+      this.push(this.dataFactory.quad(
+        statementId,
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}type`),
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}Statement`),
+        this.defaultGraph,
+      ));
+      this.push(this.dataFactory.quad(
+        statementId,
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}subject`),
+        subject,
+        this.defaultGraph,
+      ));
+      this.push(this.dataFactory.quad(
+        statementId,
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}predicate`),
+        predicate,
+        this.defaultGraph,
+      ));
+      this.push(this.dataFactory.quad(
+        statementId,
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}object`),
+        object,
+        this.defaultGraph,
+      ));
     }
   }
 
@@ -684,7 +804,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
    * This is used to check duplicate occurrences of rdf:ID in scope of the baseIRI.
    * @param {Term} term An RDF term.
    */
-  protected claimNodeId(term: RDF.Term) {
+  protected claimNodeId(term: RDF.Term): void {
     if (!this.allowDuplicateRdfIds) {
       if (this.nodeIds[term.value]) {
         throw this.newParseError(`Found multiple occurrences of rdf:ID='${term.value}'.`);
@@ -697,9 +817,10 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
    * Handle the given text string.
    * @param {string} text A parsed text string.
    */
-  protected onText(text: string) {
-    const activeTag: IActiveTag = this.activeTagStack.length
-      ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+  protected onText(text: string): void {
+    const activeTag: IActiveTag = this.activeTagStack.length > 0 ?
+      this.activeTagStack.at(-1) :
+      null;
 
     if (activeTag) {
       if (activeTag.childrenStringTags) {
@@ -713,10 +834,11 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
   /**
    * Handle the closing of the last tag.
    */
-  protected onCloseTag() {
+  protected onCloseTag(): void {
     const poppedTag: IActiveTag = this.activeTagStack.pop();
-    const parentTag: IActiveTag = this.activeTagStack.length
-        ? this.activeTagStack[this.activeTagStack.length - 1] : null;
+    const parentTag: IActiveTag = this.activeTagStack.length > 0 ?
+      this.activeTagStack.at(-1) :
+      null;
 
     // If we were converting a tag to a string, and the tag was not self-closing, close it here.
     if (poppedTag.childrenStringEmitClosingTag) {
@@ -725,37 +847,70 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
 
     // Set the literal value if we were collecting XML tags to string
     if (poppedTag.childrenTagsToString) {
-      poppedTag.datatype = this.dataFactory.namedNode(RdfXmlParser.RDF + 'XMLLiteral');
+      poppedTag.datatype = this.dataFactory.namedNode(`${RdfXmlParser.RDF}XMLLiteral`);
       poppedTag.text = poppedTag.childrenStringTags.join('');
-      poppedTag.hadChildren = false; // Force a literal triple to be emitted hereafter
+      // Force a literal triple to be emitted hereafter
+      poppedTag.hadChildren = false;
     }
 
     // Set the triple term value if we were collecting triple terms
     if (poppedTag.childrenTagsToTripleTerms && poppedTag.predicate && poppedTag.rdfVersion) {
       if (poppedTag.childrenTripleTerms.length !== 1) {
-        throw this.newParseError(`Expected exactly one triple term in rdf:parseType="Triple" but got ${poppedTag.childrenTripleTerms.length}`);
+        throw this.newParseError(`Expected exactly one triple term in rdf:parseType="Triple" but got ${
+          poppedTag.childrenTripleTerms.length}`);
       }
       for (const tripleTerm of poppedTag.childrenTripleTerms) {
-        this.emitTriple(poppedTag.subject, poppedTag.predicate, tripleTerm, null, parentTag.childrenTripleTerms, parentTag.reifier);
+        this.emitTriple(
+          poppedTag.subject,
+          poppedTag.predicate,
+          tripleTerm,
+          null,
+          parentTag.childrenTripleTerms,
+          parentTag.reifier,
+        );
       }
       poppedTag.predicateEmitted = true;
     }
 
     if (poppedTag.childrenCollectionSubject) {
       // Terminate the rdf:List
-      this.emitTriple(poppedTag.childrenCollectionSubject, poppedTag.childrenCollectionPredicate,
-        this.dataFactory.namedNode(RdfXmlParser.RDF + 'nil'), null, poppedTag.childrenTripleTerms);
+      this.emitTriple(
+        poppedTag.childrenCollectionSubject,
+        poppedTag.childrenCollectionPredicate,
+        this.dataFactory.namedNode(`${RdfXmlParser.RDF}nil`),
+        null,
+        poppedTag.childrenTripleTerms,
+      );
     } else if (poppedTag.predicate) {
       if (!poppedTag.hadChildren && poppedTag.childrenParseType !== ParseType.PROPERTY) {
         // Property element contains text
-        this.emitTriple(poppedTag.subject, poppedTag.predicate, this.createLiteral(poppedTag.text || '', poppedTag),
-          poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms, poppedTag.reifier);
+        this.emitTriple(
+          poppedTag.subject,
+          poppedTag.predicate,
+          this.createLiteral(poppedTag.text || '', poppedTag),
+          poppedTag.reifiedStatementId,
+          poppedTag.childrenTripleTerms,
+          poppedTag.reifier,
+        );
       } else if (!poppedTag.predicateEmitted) {
         // Emit remaining properties on an anonymous property element
         const subject: RDF.Term = this.dataFactory.blankNode();
-        this.emitTriple(poppedTag.subject, poppedTag.predicate, subject, poppedTag.reifiedStatementId, poppedTag.childrenTripleTerms, poppedTag.reifier);
+        this.emitTriple(
+          poppedTag.subject,
+          poppedTag.predicate,
+          subject,
+          poppedTag.reifiedStatementId,
+          poppedTag.childrenTripleTerms,
+          poppedTag.reifier,
+        );
         for (let i = 0; i < poppedTag.predicateSubPredicates.length; i++) {
-          this.emitTriple(subject, poppedTag.predicateSubPredicates[i], poppedTag.predicateSubObjects[i], null, poppedTag.childrenTripleTerms);
+          this.emitTriple(
+            subject,
+            poppedTag.predicateSubPredicates[i],
+            poppedTag.predicateSubObjects[i],
+            null,
+            poppedTag.childrenTripleTerms,
+          );
         }
       }
     }
@@ -765,14 +920,14 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
    * Fetch local DOCTYPE ENTITY's and make the parser recognise them.
    * @param {string} doctype The read doctype.
    */
-  protected onDoctype(doctype: string) {
-    doctype.replace(/<!ENTITY\s+([^\s]+)\s+["']([^"']+)["']\s*>/g, (match, prefix, uri) => {
+  protected onDoctype(doctype: string): void {
+    doctype.replaceAll(/<!ENTITY\s+(\S+)\s+["']([^"']+)["']\s*>/gu, (match, prefix: string, uri: string) => {
       this.saxParser.ENTITIES[prefix] = uri;
       return '';
     });
   }
 
-  private setDirection(activeTag: IActiveTag, value?: string) {
+  private setDirection(activeTag: IActiveTag, value?: string): void {
     if (value) {
       if (value !== 'ltr' && value !== 'rtl') {
         throw this.newParseError(`Base directions must either be 'ltr' or 'rtl', while '${value}' was found.`);
@@ -783,7 +938,7 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
     }
   }
 
-  private setVersion(activeTag: IActiveTag, version: string) {
+  private setVersion(activeTag: IActiveTag, version: string): void {
     activeTag.rdfVersion = version;
     this.emit('version', version);
     if (!this.isValidVersion(version)) {
@@ -853,7 +1008,7 @@ export interface IActiveTag {
   childrenTagsToString?: boolean;
   childrenStringTags?: string[];
   childrenStringEmitClosingTag?: string;
-  // for creating rdf:Lists
+  // For creating rdf:Lists
   childrenCollectionSubject?: RDF.NamedNode | RDF.BlankNode;
   childrenCollectionPredicate?: RDF.NamedNode;
   childrenTagsToTripleTerms?: boolean;
