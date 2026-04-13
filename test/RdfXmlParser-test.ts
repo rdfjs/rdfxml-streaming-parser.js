@@ -103,8 +103,8 @@ describe('RdfXmlParser', () => {
       parser = new RdfXmlParser();
     });
 
-    it('should delegate xml errors', () => {
-      return expect(parse(new RdfXmlParser(), `
+    it('should delegate xml errors', async() => {
+      await expect(parse(new RdfXmlParser(), `
 abc`)).rejects.toBeTruthy();
     });
 
@@ -165,7 +165,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('error for a non-absolute baseIRI', () => {
-        expect(() => parser.valueToUri('abc', { baseIRI: 'def' })).toThrow();
+        expect(() => parser.valueToUri('abc', { baseIRI: 'def' })).toThrow('Found invalid baseIRI');
       });
 
       it('create a named node that has the baseIRI scheme if the value starts with //', () => {
@@ -221,7 +221,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:about and rdf:nodeID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -234,7 +234,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:nodeID and rdf:about', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -249,7 +249,7 @@ abc`)).rejects.toBeTruthy();
     describe('should error', () => {
       // 2.10
       it('on node elements with both rdf:about and rdf:nodeID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -262,7 +262,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:nodeID and rdf:about', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -275,7 +275,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:ID and rdf:nodeID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -288,7 +288,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:nodeID and rdf:ID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -301,7 +301,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:about and rdf:ID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -315,7 +315,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on node elements with both rdf:ID and rdf:about', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -328,7 +328,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('when multiple equal rdf:ID occurrences on node elements are found', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -343,7 +343,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.17
       it('when multiple equal rdf:ID occurrences on property elements are found', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -359,7 +359,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10, 2.17
       it('when multiple equal rdf:ID occurrences on node and property elements are found', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -373,7 +373,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('when rdf:ID is used without base', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -387,7 +387,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.10
       it('on property elements with both rdf:nodeID and rdf:about', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -400,8 +400,8 @@ abc`)).rejects.toBeTruthy();
       });
 
       // 2.10
-      it('on property elements with both rdf:nodeID and rdf:about', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+      it('on property elements with both rdf:resource and rdf:nodeID', async() => {
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -413,7 +413,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11
       it('on property elements with both rdf:parseType="Resource" and rdf:resource', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -428,7 +428,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11
       it('on property elements with both rdf:parseType="Resource" and rdf:datatype', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -443,7 +443,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.12
       it('on property elements with both non-rdf:* properties and rdf:datatype', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -456,7 +456,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11
       it('on property elements with both rdf:parseType="Resource" and rdf:nodeID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -469,7 +469,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.12
       it('on property elements with both non-rdf:* properties and rdf:nodeID', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -481,7 +481,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11
       it('on property elements with both rdf:resource and rdf:parseType="Resource"', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -496,7 +496,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.12
       it('on property elements with both rdf:datatype and rdf:parseType="Resource"', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -511,7 +511,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11
       it('on property elements with both rdf:nodeID and rdf:parseType="Resource"', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -524,7 +524,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11, 2.12
       it('on property elements with attributes and rdf:parseType="Resource"', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -537,7 +537,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.11
       it('on property elements with rdf:parseType="Resource" and attributes', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -549,7 +549,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.12
       it('on property elements with rdf:datatype and attributes', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -562,7 +562,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on Description as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:Description rdf:resource="http://example.org/node2"/>
@@ -572,7 +572,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on ID as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:ID rdf:resource="http://example.org/node2"/>
@@ -582,7 +582,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on RDF as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:RDF rdf:resource="http://example.org/node2"/>
@@ -592,7 +592,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on about as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:about rdf:resource="http://example.org/node2"/>
@@ -602,7 +602,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on bagID as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:bagID rdf:resource="http://example.org/node2"/>
@@ -612,7 +612,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on parseType as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:parseType rdf:resource="http://example.org/node2"/>
@@ -622,7 +622,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on resource as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:resource rdf:resource="http://example.org/node2"/>
@@ -632,7 +632,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on nodeID as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:nodeID rdf:resource="http://example.org/node2"/>
@@ -642,7 +642,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on aboutEach as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:aboutEach rdf:resource="http://example.org/node2"/>
@@ -652,7 +652,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden property element name
       it('on aboutEachPrefix as property element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.org/node1">
     <rdf:aboutEachPrefix rdf:resource="http://example.org/node2"/>
@@ -662,7 +662,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on RDF as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:RDF/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: RDF'));
@@ -670,7 +670,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on ID as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:ID/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: ID'));
@@ -678,7 +678,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on about as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:about/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: about'));
@@ -686,7 +686,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on bagID as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:bagID/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: bagID'));
@@ -694,7 +694,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on parseType as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:parseType/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: parseType'));
@@ -702,7 +702,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on resource as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:resource/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: resource'));
@@ -710,7 +710,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on nodeID as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:nodeID/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: nodeID'));
@@ -718,7 +718,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on li as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:li/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: li'));
@@ -726,7 +726,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on aboutEach as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:aboutEach/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: aboutEach'));
@@ -734,7 +734,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden node element name
       it('on aboutEachPrefix as node element name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:aboutEachPrefix/>
 </rdf:RDF>`)).rejects.toEqual(new Error('Illegal node element name: aboutEachPrefix'));
@@ -742,7 +742,7 @@ abc`)).rejects.toBeTruthy();
 
       // Illegal XML name production
       it('on rdf:nodeID with illegal XML Name on a property element', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:eg="http://example.org/">
 
@@ -755,7 +755,7 @@ abc`)).rejects.toBeTruthy();
 
       // Illegal XML name production
       it('on rdf:nodeID with illegal XML Name on a node element', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
  <rdf:Description rdf:nodeID="_:bnode" />
@@ -765,7 +765,7 @@ abc`)).rejects.toBeTruthy();
 
       // Illegal XML name production
       it('on rdf:nodeID with illegal blank node on a resource node element', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:ns1="x:" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
   <rdf:Description rdf:about="http://example.org/">
@@ -777,7 +777,7 @@ abc`)).rejects.toBeTruthy();
 
       // Illegal XML name production
       it('on rdf:ID with illegal XML Name', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:eg="http://example.org/">
 
@@ -792,7 +792,7 @@ abc`)).rejects.toBeTruthy();
 
       // Deprecated rdf:bagID
       it('on rdf:bagID on a property element', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:eg="http://example.org/">
 
@@ -805,7 +805,7 @@ abc`)).rejects.toBeTruthy();
 
       // Deprecated rdf:bagID
       it('on rdf:bagID on a node element', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
  <rdf:Description rdf:bagID='333-555-666' />
@@ -815,7 +815,7 @@ abc`)).rejects.toBeTruthy();
 
       // Deprecated rdf:aboutEach
       it('on rdf:aboutEach', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:eg="http://example.org/"
          xml:base="http://base.org/">
@@ -833,7 +833,7 @@ abc`)).rejects.toBeTruthy();
 
       // Deprecated rdf:aboutEachPrefix
       it('on rdf:aboutEachPrefix', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:eg="http://example.org/">
 
@@ -850,7 +850,7 @@ abc`)).rejects.toBeTruthy();
 
       // Forbidden rdf:li on node elements
       it('on li node elements', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:foo="http://foo/">
 
@@ -859,7 +859,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('on unknown prefixes in property tags', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:dc="http://purl.org/dc/elements/1.1/">
   <rdf:Description rdf:about="http://example.org/">
@@ -871,7 +871,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('on illegal its:dir values', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -886,7 +886,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('on rdf:parseType="Triple" with missing predicate in triple term', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:ex="http://example.org/stuff/1.0/"
             xml:base="http://example.org/triples/"
@@ -903,7 +903,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('on rdf:parseType="Triple" with multiple triple terms', async() => {
-        return expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:ex="http://example.org/stuff/1.0/"
             xml:base="http://example.org/triples/"
@@ -925,14 +925,14 @@ abc`)).rejects.toBeTruthy();
     describe('should parse', () => {
       // 2.6
       it('an empty document', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />`)).resolves
           .toBeRdfIsomorphic([]);
       });
 
       // 2.6
       it('and ignore unknown xml:* attributes', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/"
@@ -945,7 +945,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.6
       it('an empty rdf:Description', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -957,7 +957,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.6
       it('a self-closing empty rdf:Description', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -968,7 +968,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.6
       it('an rdf:Description without attributes', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -980,7 +980,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.6
       it('a self-closing rdf:Description without attributes', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -991,7 +991,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.5
       it('an rdf:Description with an attribute', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -1005,7 +1005,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('declaration of the default namespace on the property element', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.com">
        <title xmlns="http://purl.org/dc/terms/" xml:lang="en">RDF1.1 XML Syntax</title>
@@ -1017,7 +1017,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('declaration of the namespace on the property element', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.com">
        <dct:title xmlns:dct="http://purl.org/dc/terms/" xml:lang="en">RDF1.1 XML Syntax</dct:title>
@@ -1029,7 +1029,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('declaration of the namespace on the resource element', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.com" xmlns:dct="http://purl.org/dc/terms/">
        <dct:title xml:lang="en">RDF1.1 XML Syntax</dct:title>
@@ -1041,7 +1041,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('declaration of the default namespace on the resource element', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="http://example.com" xmlns="http://purl.org/dc/terms/">
        <title xml:lang="en">RDF1.1 XML Syntax</title>
@@ -1053,7 +1053,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('declaration of the namespace on a typed resource element', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <dct:Standard rdf:about="http://example.com" xmlns:dct="http://purl.org/dc/terms/">
   </dct:Standard>
@@ -1064,7 +1064,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('cdata support', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
   <rdf:Description rdf:about="http://example.com">
        <dct:title><![CDATA[A title with a <tag>]]></dct:title>
@@ -1076,7 +1076,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('DOCTYPE and ENTITY\'s', async() => {
-        return await expect(parse(parser, `<!DOCTYPE rdf:RDF
+        await expect(parse(parser, `<!DOCTYPE rdf:RDF
 [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
  <!ENTITY dc "http://purl.org/dc/elements/1.1/">
  ]>
@@ -1092,7 +1092,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('DOCTYPE and ENTITY\'s with single quotes', async() => {
-        return await expect(parse(parser, `<!DOCTYPE rdf:RDF
+        await expect(parse(parser, `<!DOCTYPE rdf:RDF
 [<!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
  <!ENTITY dc 'http://purl.org/dc/elements/1.1/'>
  ]>
@@ -1108,7 +1108,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('DOCTYPE and ENTITY\'s in xml:base with multiple whitespaces', async() => {
-        return await expect(parse(parser, `<!DOCTYPE rdf:RDF [
+        await expect(parse(parser, `<!DOCTYPE rdf:RDF [
     <!ENTITY ssnx "http://purl.oclc.org/NET/ssnx/" >
     <!ENTITY \t\n   xsd  \n   \t   "http://www.w3.org/2001/XMLSchema#"  \t\n  >
 ]>
@@ -1129,7 +1129,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('DOCTYPE and ENTITY\'s in xml:base', async() => {
-        return await expect(parse(parser, `<!DOCTYPE rdf:RDF [
+        await expect(parse(parser, `<!DOCTYPE rdf:RDF [
     <!ENTITY ssnx "http://purl.oclc.org/NET/ssnx/" >
     <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
 ]>
@@ -1150,7 +1150,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('DOCTYPE and ENTITY\'s in xmlns prefixes', async() => {
-        return await expect(parse(parser, `<!DOCTYPE rdf:RDF [
+        await expect(parse(parser, `<!DOCTYPE rdf:RDF [
     <!ENTITY ssnx "http://purl.oclc.org/NET/ssnx/" >
     <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
     <!ENTITY w3 "http://www.w3.org/1999/02/" >
@@ -1173,7 +1173,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.5
       it('an rdf:Description without rdf:about and with an attribute', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -1188,7 +1188,7 @@ abc`)).rejects.toBeTruthy();
       // 2.5
       it('an rdf:Description without rdf:about and with an attribute with a custom default', async() => {
         const myParser = new RdfXmlParser({ defaultGraph: DF.namedNode('http://example.org/g1') });
-        return await expect(parse(myParser, `<?xml version="1.0"?>
+        await expect(parse(myParser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -1202,7 +1202,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.5
       it('an rdf:Description with multiple attributes', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -1226,14 +1226,14 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description dc:title1="RDF1.1 XML Syntax" dc:title2="RDF1.1 XML Syntax bis">
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array).toBeRdfIsomorphic([
+        await expect(array).toBeRdfIsomorphic([
           quad('_:b', 'http://purl.org/dc/elements/1.1/title1', '"RDF1.1 XML Syntax"'),
           quad('_:b', 'http://purl.org/dc/elements/1.1/title2', '"RDF1.1 XML Syntax bis"'),
         ]);
       });
 
       it('an rdf:Description with an empty property element should define an empty literal', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -1248,7 +1248,7 @@ abc`)).rejects.toBeTruthy();
 
       // 2.2
       it('an rdf:Description with a valid property element', async() => {
-        return await expect(parse(parser, `<?xml version="1.0"?>
+        await expect(parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:ex="http://example.org/stuff/1.0/">
@@ -1280,7 +1280,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_:b1', 'http://example.org/stuff/1.0/editor', '_:b2'),
             quad('_:b2', 'http://example.org/stuff/1.0/homePage', '_:b3'),
@@ -1304,7 +1304,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
             quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
@@ -1321,7 +1321,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
           ]);
@@ -1337,7 +1337,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title></dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '""'),
           ]);
@@ -1371,7 +1371,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
             quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
@@ -1400,7 +1400,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
             quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
@@ -1419,7 +1419,7 @@ abc`)).rejects.toBeTruthy();
     <ex:homePage rdf:resource="http://purl.org/net/dajobe/" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
           ]);
@@ -1441,7 +1441,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b1'),
             quad('_:b1', 'http://example.org/stuff/1.0/homePage', 'http://purl.org/net/dajobe/'),
@@ -1460,7 +1460,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us'),
           ]);
@@ -1478,7 +1478,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us--ltr'),
           ]);
@@ -1498,7 +1498,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us'),
@@ -1521,7 +1521,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us--ltr'),
@@ -1542,7 +1542,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
@@ -1564,7 +1564,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
@@ -1581,7 +1581,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title xml:lang="en-us">RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us'),
           ]);
@@ -1599,7 +1599,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title xml:lang="en-us" its:dir="rtl" its:version="2.0">RDF 1.1 XML Syntax</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en-us--rtl'),
           ]);
@@ -1619,7 +1619,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
@@ -1641,7 +1641,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
             quad('_:b', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
@@ -1666,7 +1666,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title xml:lang="en">The Tree</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en'),
@@ -1697,7 +1697,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title xml:lang="en" its:dir="rtl">The Tree</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF 1.1 XML Syntax"@en--ltr'),
@@ -1719,7 +1719,7 @@ abc`)).rejects.toBeTruthy();
   xml:lang="en">
   <rdf:Description rdf:about="http://example.org/joe" ex:name="bar" />
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/joe', 'http://example.org/name', '"bar"@en'),
           ]);
@@ -1734,7 +1734,7 @@ abc`)).rejects.toBeTruthy();
     <ex:size rdf:datatype="http://www.w3.org/2001/XMLSchema#int">123</ex:size>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/size', '"123"^^http://www.w3.org/2001/XMLSchema#int'),
           ]);
@@ -1749,7 +1749,7 @@ abc`)).rejects.toBeTruthy();
     <ex:size rdf:datatype="http://www.w3.org/2001/XMLSchema#int">123</ex:size>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/size', '"123"^^http://www.w3.org/2001/XMLSchema#int'),
           ]);
@@ -1765,7 +1765,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
         expect(array[0].object).toEqual(DF.blankNode('abc'));
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
           ]);
@@ -1779,7 +1779,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:nodeID="abc" ex:fullName="Dave Beckett" />
 </rdf:RDF>`);
         expect(array[0].subject).toEqual(DF.blankNode('abc'));
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_b', 'http://example.org/stuff/1.0/fullName', '"Dave Beckett"'),
           ]);
@@ -1803,7 +1803,7 @@ abc`)).rejects.toBeTruthy();
         expect(array[1].object).toEqual(DF.blankNode('abc'));
         expect(array[2].subject).toEqual(DF.blankNode('abc'));
         expect(array[3].subject).toEqual(DF.blankNode('abc'));
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
@@ -1826,7 +1826,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
@@ -1846,7 +1846,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:parseType="resource" rdf:nodeID="abc" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
@@ -1864,7 +1864,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor ex:fullName="Dave Beckett" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://purl.org/dc/elements/1.1/title', '"RDF/XML Syntax Specification (Revised)"'),
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://example.org/stuff/1.0/editor', '_:b'),
@@ -1883,7 +1883,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>A marvelous thing</dc:title>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/stuff/1.0/Document'),
             quad('http://example.org/thing', 'http://purl.org/dc/elements/1.1/title', '"A marvelous thing"'),
@@ -1900,7 +1900,7 @@ abc`)).rejects.toBeTruthy();
     <dc:title>A marvelous thing</dc:title>
   </ex:Document>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/stuff/1.0/Document'),
             quad('http://example.org/thing', 'http://purl.org/dc/elements/1.1/title', '"A marvelous thing"'),
@@ -1919,7 +1919,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:datatype="abc">def</ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop', 'http://example.org/here/fruit/apple'),
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2', 'http://example.org/'),
@@ -1939,7 +1939,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:datatype="abc">def</ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop', 'http://example.org/here/fruit/apple'),
             quad('http://example.org/here/snack', 'http://example.org/stuff/1.0/prop2', 'http://example.org/'),
@@ -1948,6 +1948,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       // 2.14
+      // eslint-disable-next-line max-len
       it('shortened URIs in rdf:about, rdf:resource and rdf:datatype with xml:base on the root and inner tag', async() => {
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -1959,7 +1960,7 @@ abc`)).rejects.toBeTruthy();
     <ex:editor rdf:datatype="abc">def</ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/prop', 'http://example.org/here2/fruit/apple'),
             quad('http://example.org/here2/snack', 'http://example.org/stuff/1.0/prop2', 'http://example.org/'),
@@ -1977,7 +1978,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop rdf:resource="fruit/apple"/>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/here/#snack', 'http://example.org/stuff/1.0/prop', 'http://example.org/here/fruit/apple'),
           ]);
@@ -1994,7 +1995,7 @@ abc`)).rejects.toBeTruthy();
     <eg:value rdf:resource="relpath" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/dir/file', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/type'),
             quad('http://example.org/dir/file#foo', 'http://example.org/value', 'http://example.org/dir/relpath'),
@@ -2010,7 +2011,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:ID="frag" eg:value="v" xml:base="http://example.org/file2"/>
   <eg:type rdf:about="relFile" />
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/file2#frag', 'http://example.org/value', '"v"'),
             quad('http://example.org/dir/relFile', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/type'),
@@ -2028,7 +2029,7 @@ abc`)).rejects.toBeTruthy();
     <eg:value rdf:resource="relpath" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://document.org/relative', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/type'),
             quad('http://document.org/relative#foo', 'http://example.org/value', 'http://document.org/relpath'),
@@ -2046,7 +2047,7 @@ abc`)).rejects.toBeTruthy();
     <eg:value rdf:resource="relpath" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://document.org/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/type'),
             quad('http://document.org/#foo', 'http://example.org/value', 'http://document.org/relpath'),
@@ -2063,7 +2064,7 @@ abc`)).rejects.toBeTruthy();
     <rdf:li rdf:resource="http://example.org/pear"/>
   </rdf:Seq>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq'),
             quad('http://example.org/favourite-fruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_1', 'http://example.org/banana'),
@@ -2085,7 +2086,7 @@ abc`)).rejects.toBeTruthy();
     </ex:hasFruit>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit', '_:b1'),
             quad('_:b1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first', 'http://example.org/banana'),
@@ -2106,7 +2107,7 @@ abc`)).rejects.toBeTruthy();
     <ex:hasFruit rdf:parseType="Collection"></ex:hasFruit>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
           ]);
@@ -2121,7 +2122,7 @@ abc`)).rejects.toBeTruthy();
     <ex:hasFruit rdf:parseType="Collection" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/basket', 'http://example.org/stuff/1.0/hasFruit', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'),
           ]);
@@ -2144,7 +2145,7 @@ abc`)).rejects.toBeTruthy();
         </rdf:type>
     </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/eg#eric', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '_:b99_a0'),
             quad('_:b99_a0', 'http://example.org/eg#intersectionOf', '_:b99_a1'),
@@ -2169,7 +2170,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop rdf:ID="triple1">blah</ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -2191,7 +2192,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', 'http://example.org/2'),
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -2212,7 +2213,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop1', 'http://example.org/2'),
             quad('http://example.org/2', 'http://example.org/stuff/1.0/prop2', '"abc"'),
@@ -2231,7 +2232,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '_:b'),
             quad('http://example.org/triples/#triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -2252,7 +2253,7 @@ abc`)).rejects.toBeTruthy();
                 rdf:ID="frag" ex:value="v" />
   <rdf:Description rdf:ID="frag" ex:value="v" />
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/dir/file#frag', 'http://example.org/value', '"v"'),
             quad('http://example.org/triples#frag', 'http://example.org/value', '"v"'),
@@ -2273,7 +2274,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <a:Box xmlns:a="http://example.org/a#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/" required="true">\n' +
               '        <a:widget size="10"></a:widget>\n' +
@@ -2294,7 +2295,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <Box xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/"></Box>\n' +
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
@@ -2309,7 +2310,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop1>stuff</ex:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
           ]);
@@ -2323,7 +2324,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop1 xmlnewthing="anything">stuff</ex:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/thing', 'http://example.org/schema#prop1', '"stuff"'),
           ]);
@@ -2337,7 +2338,7 @@ abc`)).rejects.toBeTruthy();
                    xml:lang="fr"
                    eg:property="chat" />
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/node', 'http://example.org/schema#property', '"chat"@fr'),
           ]);
@@ -2352,7 +2353,7 @@ abc`)).rejects.toBeTruthy();
     <eg:prop1 rdf:ID="reify" eg:prop2="val"></eg:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_:b0', 'http://example.org/prop1', '_:b1'),
             quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -2372,7 +2373,7 @@ abc`)).rejects.toBeTruthy();
     <eg:prop1 eg:prop2="val" rdf:ID="reify"></eg:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_:b0', 'http://example.org/prop1', '_:b1'),
             quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
@@ -2392,7 +2393,7 @@ abc`)).rejects.toBeTruthy();
     <eg:prop1 rdf:resource="http://example.org/object#uriRef" eg:prop2="val"></eg:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_:b', 'http://example.org/prop1', 'http://example.org/object#uriRef'),
             quad('http://example.org/object#uriRef', 'http://example.org/prop2', '"val"'),
@@ -2405,7 +2406,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://example.org/resource/"
                    rdf:type="http://example.org/class/"/>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/class/'),
           ]);
@@ -2416,7 +2417,7 @@ abc`)).rejects.toBeTruthy();
 <Book xmlns="http://example.org/terms#">
   <title>Dogs in Hats</title>
 </Book>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_:b', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/terms#Book'),
             quad('_:b', 'http://example.org/terms#title', '"Dogs in Hats"'),
@@ -2432,7 +2433,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:ID="frag" ex:value="a" />
   <rdf:Description rdf:ID="frag" ex:value="b" />
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/triples#frag', 'http://example.org/value', '"a"'),
             quad('http://example.org/triples#frag', 'http://example.org/value', '"b"'),
@@ -2459,7 +2460,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 </rdf:RDF>`);
 
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('https://example.com/', 'http://purl.org/dc/terms/creator', '_:b1'),
             quad('https://example.com/', 'http://purl.org/dc/terms/creator', '_:b2'),
@@ -2478,7 +2479,7 @@ abc`)).rejects.toBeTruthy();
     <bla:editor xmlns:bla="http://x.p.t/o/TBox#" rdf:datatype="http://www.w3.org/TR/rdf-syntax-grammar">Yes</bla:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.w3.org/TR/rdf-syntax-grammar', 'http://x.p.t/o/TBox#editor', '"Yes"^^http://www.w3.org/TR/rdf-syntax-grammar'),
           ]);
@@ -2497,7 +2498,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://ex.org/i/subject', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://ex.org/o/type'),
             quad('http://ex.org/i/subject', 'http://ex.org/o/hasBlankNode', '_:orange'),
@@ -2519,7 +2520,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(cb).toHaveBeenCalledWith('1.2');
+        await expect(cb).toHaveBeenCalledWith('1.2');
       });
 
       it('rdf:version attribute a property tag', async() => {
@@ -2535,7 +2536,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(cb).toHaveBeenCalledWith('1.2');
+        await expect(cb).toHaveBeenCalledWith('1.2');
       });
 
       it('rdf:version attribute an internal tag', async() => {
@@ -2551,7 +2552,7 @@ abc`)).rejects.toBeTruthy();
     </ex:editor>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(cb).toHaveBeenCalledWith('1.2');
+        await expect(cb).toHaveBeenCalledWith('1.2');
       });
 
       it('throws on an unsupported rdf:version', async() => {
@@ -2627,7 +2628,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad(
               'http://example.org/',
@@ -2651,7 +2652,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([]);
       });
 
@@ -2669,7 +2670,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad(
               'http://example.org/',
@@ -2691,7 +2692,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad(
               'http://example.org/',
@@ -2715,7 +2716,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad(
               'http://example.org/',
@@ -2743,7 +2744,7 @@ abc`)).rejects.toBeTruthy();
     </ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad(
               'http://example.org/',
@@ -2765,7 +2766,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop>foo</ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
             quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop "blah">>'),
@@ -2785,7 +2786,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop>foo</ex:prop>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '"blah"'),
             quad('_:b0', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop "blah">>'),
@@ -2802,7 +2803,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop rdf:annotation="http://example.org/triple1" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '""'),
             quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop "">>'),
@@ -2818,7 +2819,7 @@ abc`)).rejects.toBeTruthy();
     <ex:prop rdf:annotation="http://example.org/triple1" rdf:parseType="Resource" />
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/stuff/1.0/prop', '_:b0'),
             quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/stuff/1.0/prop _:b0>>'),
@@ -2833,7 +2834,7 @@ abc`)).rejects.toBeTruthy();
     <eg:prop1 rdf:annotation="http://example.org/triple1" eg:prop2="val"></eg:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('_:b', 'http://example.org/prop2', '"val"'),
             quad('_:c', 'http://example.org/prop1', '_:b'),
@@ -2851,7 +2852,7 @@ abc`)).rejects.toBeTruthy();
              rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Resource"/>
  </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Resource'),
             quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://www.w3.org/1999/02/22-rdf-syntax-ns#Resource>>'),
@@ -2867,7 +2868,7 @@ abc`)).rejects.toBeTruthy();
    <eg:prop rdf:annotation="http://example.org/triple1" rdf:nodeID="object"/>
  </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/', 'http://example.org/prop', '_:object'),
             quad('http://example.org/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/ http://example.org/prop _:object>>'),
@@ -2887,7 +2888,7 @@ abc`)).rejects.toBeTruthy();
    </eg:prop>
  </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/b', 'http://example.org/prop', 'http://example.org/c'),
             quad('http://example.org/triple2', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://example.org/b http://example.org/prop http://example.org/c>>'),
@@ -2913,7 +2914,7 @@ abc`)).rejects.toBeTruthy();
         </rdf:type>
     </rdf:Description>
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://example.org/eg#eric', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '_:an0'),
             quad('_:an0', 'http://example.org/eg#intersectionOf', '_:an1'),
@@ -2936,7 +2937,7 @@ abc`)).rejects.toBeTruthy();
   </rdf:Description>
 
 </rdf:RDF>`);
-        return expect(array)
+        await expect(array)
           .toBeRdfIsomorphic([
             quad('http://www.example.org/a', 'http://example.org/prop', '"<br xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:eg="http://example.org/"></br>"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
             quad('http://example.com/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://www.example.org/a http://example.org/prop "<br xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:eg="http://example.org/"></br>"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>>'),
@@ -3024,7 +3025,7 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('should properly support XML encoded URIs', async() => {
-        expect(parse(parser, `<?xml version="1.0" encoding="utf-8" ?>
+        await expect(parse(parser, `<?xml version="1.0" encoding="utf-8" ?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:ns0="b:">
   <rdf:Description rdf:about="a:&#xA;">
@@ -3068,7 +3069,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://example.org/resource/"
                    rdf:type="http://example.org/class/"/>
 </rdf:RDF>`);
-      return await expect(arrayifyStream(parser.import(stream))).resolves.toBeRdfIsomorphic([
+      await expect(arrayifyStream(parser.import(stream))).resolves.toBeRdfIsomorphic([
         quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/class/'),
       ]);
     });
@@ -3079,7 +3080,7 @@ abc`)).rejects.toBeTruthy();
   <rdf:Description rdf:about="http://example.org/resource/"
                    rdf:type="http://example.org/class/"/>
 </rdf:RDF>`) ]);
-      return await expect(arrayifyStream(parser.import(stream))).resolves.toBeRdfIsomorphic([
+      await expect(arrayifyStream(parser.import(stream))).resolves.toBeRdfIsomorphic([
         quad('http://example.org/resource/', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://example.org/class/'),
       ]);
     });
@@ -3093,7 +3094,7 @@ abc`)).rejects.toBeTruthy();
     <eg:prop1 eg:prop2="val" rdf:ID="reify"></eg:prop1>
   </rdf:Description>
 </rdf:RDF>`);
-      return await expect(arrayifyStream(parser.import(stream))).resolves.toBeRdfIsomorphic([
+      await expect(arrayifyStream(parser.import(stream))).resolves.toBeRdfIsomorphic([
         quad('_:b0', 'http://example.org/prop1', '_:b1'),
         quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement'),
         quad('http://example.org/triples#reify', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject', '_:b0'),
@@ -3106,7 +3107,7 @@ abc`)).rejects.toBeTruthy();
     it('should forward error events', async() => {
       const stream = new PassThrough();
       stream._read = () => stream.emit('error', new Error('my error'));
-      return expect(arrayifyStream(parser.import(stream))).rejects.toThrow(new Error('my error'));
+      await expect(arrayifyStream(parser.import(stream))).rejects.toThrow(new Error('my error'));
     });
   });
 });
