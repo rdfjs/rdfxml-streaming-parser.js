@@ -115,17 +115,19 @@ Optionally, the following parameters can be set in the `RdfXmlParser` constructo
 * `iriValidationStrategy`: Allows to customize the used IRI validation strategy using the `IriValidationStrategy` enumeration. IRI validation is handled by [validate-iri.js](https://github.com/comunica/validate-iri.js/).  _(Default: `IriValidationStrategy.Pragmatic`)_
 * `parseUnsupportedVersions`: If no error should be emitted on unsupported versions. _(Default: `false`)_
 * `version`: The version that was supplied as a media type parameter. _(Default: `undefined`)_
+* `includeXmlNamespacesInLiterals`: If namespaces from the current and parent tags should be included in XML Literals. _(Default: `false`)_
 
 ```javascript
 new RdfXmlParser({
-  dataFactory: require('@rdfjs/data-model'),
-  baseIRI: 'http://example.org/',
-  defaultGraph: namedNode('http://example.org/graph'),
-  strict: true,
-  trackPosition: true,
-  allowDuplicateRdfIds: true,
-  validateUri: true,
-  parseUnsupportedVersions: false,
+    dataFactory: require('@rdfjs/data-model'),
+    baseIRI: 'http://example.org/',
+    defaultGraph: namedNode('http://example.org/graph'),
+    strict: true,
+    trackPosition: true,
+    allowDuplicateRdfIds: true,
+    validateUri: true,
+    parseUnsupportedVersions: false,
+    includeXmlNamespacesInLiterals: false,
 });
 ```
 
