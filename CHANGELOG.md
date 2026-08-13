@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v3.3.0"></a>
+## [v3.3.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.2.0...v3.3.0) - 2026-08-13
+
+### Changed
+* [Don't emit namespaces in XML Literals by default](https://github.com/rdfjs/rdfxml-streaming-parser.js/commit/03d76f215c12a4b79a93a0310ddadc2adb328329)
+    This partially reverts 98d6ab5 and instead puts it behind a new parser option: `includeXmlNamespacesInLiterals`
+
 <a name="v3.2.0"></a>
 ## [v3.2.0](https://github.com/rdfjs/rdfxml-streaming-parser.js/compare/v3.1.0...v3.2.0) - 2025-11-03
 
