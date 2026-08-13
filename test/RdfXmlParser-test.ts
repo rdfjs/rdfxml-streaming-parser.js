@@ -2276,11 +2276,35 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`);
         await expect(array)
           .toBeRdfIsomorphic([
-            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <a:Box xmlns:a="http://example.org/a#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/" required="true">\n' +
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <a:Box required="true">\n' +
               '        <a:widget size="10"></a:widget>\n' +
               '        <a:grommit id="23">abc</a:grommit>\n' +
               '      </a:Box>\n' +
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
+          ]);
+      });
+
+      it('property element values with rdf:parseType="Literal" to literals with emit namespaces', async() => {
+        parser = new RdfXmlParser({ includeXmlNamespacesInLiterals: true });
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/item01">
+    <ex:prop rdf:parseType="Literal" xmlns:a="http://example.org/a#">
+      <a:Box required="true">
+        <a:widget size="10" />
+        <a:grommit id="23">abc</a:grommit>
+      </a:Box>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        await expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <a:Box xmlns:a="http://example.org/a#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/" required="true">\n' +
+                  '        <a:widget size="10"></a:widget>\n' +
+                  '        <a:grommit id="23">abc</a:grommit>\n' +
+                  '      </a:Box>\n' +
+                  '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
           ]);
       });
 
@@ -2297,8 +2321,27 @@ abc`)).rejects.toBeTruthy();
 </rdf:RDF>`);
         await expect(array)
           .toBeRdfIsomorphic([
-            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <Box xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/"></Box>\n' +
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <Box></Box>\n' +
               '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
+          ]);
+      });
+
+      // 2.8
+      it(`property element values with rdf:parseType="Literal" to literals without prefixes with emit namespaces`, async() => {
+        parser = new RdfXmlParser({ includeXmlNamespacesInLiterals: true });
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/stuff/1.0/">
+  <rdf:Description rdf:about="http://example.org/item01">
+    <ex:prop rdf:parseType="Literal">
+      <Box></Box>
+    </ex:prop>
+  </rdf:Description>
+</rdf:RDF>`);
+        await expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://example.org/item01', 'http://example.org/stuff/1.0/prop', '"\n      <Box xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/stuff/1.0/"></Box>\n' +
+                  '    "^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
           ]);
       });
 
@@ -2927,6 +2970,25 @@ abc`)).rejects.toBeTruthy();
       });
 
       it('on property elements with rdf:annotation with literal parse type', async() => {
+        const array = await parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:eg="http://example.org/"
+         xml:base="http://example.com/">
+
+  <rdf:Description rdf:about="http://www.example.org/a">
+    <eg:prop rdf:annotation="http://example.com/triple1" rdf:parseType="Literal"><br /></eg:prop>
+  </rdf:Description>
+
+</rdf:RDF>`);
+        await expect(array)
+          .toBeRdfIsomorphic([
+            quad('http://www.example.org/a', 'http://example.org/prop', '"<br></br>"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral'),
+            quad('http://example.com/triple1', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies', '<<http://www.example.org/a http://example.org/prop "<br></br>"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>>'),
+          ]);
+      });
+
+      it('on property elements with rdf:annotation with literal parse type with emit namespaces', async() => {
+        parser = new RdfXmlParser({ includeXmlNamespacesInLiterals: true });
         const array = await parse(parser, `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:eg="http://example.org/"

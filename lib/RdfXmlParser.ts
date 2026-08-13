@@ -71,6 +71,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
   private readonly iriValidationStrategy: IriValidationStrategy;
   private readonly parseUnsupportedVersions: boolean;
   private version: string | undefined;
+  private readonly includeXmlNamespacesInLiterals: boolean;
 
   private readonly activeTagStack: IActiveTag[] = [];
   private readonly nodeIds: Record<string, boolean> = {};
@@ -99,6 +100,7 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
     }
     this.parseUnsupportedVersions = Boolean(args?.parseUnsupportedVersions);
     this.version = args?.version;
+    this.includeXmlNamespacesInLiterals = Boolean(args?.includeXmlNamespacesInLiterals);
 
     this.saxParser = new SaxesParser({ xmlns: true, position: this.trackPosition });
 
@@ -246,8 +248,10 @@ export class RdfXmlParser extends Transform implements RDF.Sink<EventEmitter, RD
       // Convert this tag to a string
       const tagName: string = tag.name;
       let attributes = '';
-      for (const { key, value } of parentTag.namespaces || []) {
-        attributes += ` ${key}="${value}"`;
+      if (this.includeXmlNamespacesInLiterals) {
+        for (const { key, value } of parentTag.namespaces || []) {
+          attributes += ` ${key}="${value}"`;
+        }
       }
       for (const attributeKey in tag.attributes) {
         attributes += ` ${attributeKey}="${tag.attributes[attributeKey].value}"`;
@@ -987,6 +991,11 @@ export interface IRdfXmlParserArgs {
    * The version that was supplied as a media type parameter.
    */
   version?: string;
+  /**
+   * If namespaces from the current and parent tags should be included in XML Literals.
+   * Defaults to false.
+   */
+  includeXmlNamespacesInLiterals?: boolean;
 }
 
 export interface IActiveTag {
