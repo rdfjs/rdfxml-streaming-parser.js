@@ -100,7 +100,7 @@
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^2.0.0",
     "rdf-quad": "^2.0.0",
-    "rdf-test-suite": "^2.1.4",
+    "rdf-test-suite": "^2.3.2",
     "streamify-array": "^2.0.0",
     "streamify-string": "^1.0.1",
     "ts-jest": "^29.4.6",
