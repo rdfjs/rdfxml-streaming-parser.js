@@ -830,7 +830,8 @@ while ${attribute.value} and ${activeSubjectValue} where found.`);
       if (activeTag.childrenStringTags) {
         activeTag.childrenStringTags.push(text);
       } else if (activeTag.predicate) {
-        activeTag.text = text;
+        // Text, CDATA sections and text around comments arrive as separate events, so join them
+        activeTag.text = (activeTag.text ?? '') + text;
       }
     }
   }

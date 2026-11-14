@@ -1075,6 +1075,56 @@ abc`)).rejects.toBeTruthy();
           ]);
       });
 
+      it('cdata surrounded by text', async() => {
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
+  <rdf:Description rdf:about="http://example.com">
+       <dct:title>before <![CDATA[inside]]> after</dct:title>
+  </rdf:Description>
+</rdf:RDF>`)).resolves
+          .toBeRdfIsomorphic([
+            quad('http://example.com', 'http://purl.org/dc/terms/title', '"before inside after"'),
+          ]);
+      });
+
+      it('multiple cdata sections', async() => {
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
+  <rdf:Description rdf:about="http://example.com">
+       <dct:title><![CDATA[a]]><![CDATA[b]]></dct:title>
+  </rdf:Description>
+</rdf:RDF>`)).resolves
+          .toBeRdfIsomorphic([
+            quad('http://example.com', 'http://purl.org/dc/terms/title', '"ab"'),
+          ]);
+      });
+
+      it('indented cdata', async() => {
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
+  <rdf:Description rdf:about="http://example.com">
+       <dct:title>
+         <![CDATA[hello]]>
+       </dct:title>
+  </rdf:Description>
+</rdf:RDF>`)).resolves
+          .toBeRdfIsomorphic([
+            quad('http://example.com', 'http://purl.org/dc/terms/title', '"\n         hello\n       "'),
+          ]);
+      });
+
+      it('text split by a comment', async() => {
+        await expect(parse(parser, `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dct="http://purl.org/dc/terms/" >
+  <rdf:Description rdf:about="http://example.com">
+       <dct:title>a<!-- note -->b</dct:title>
+  </rdf:Description>
+</rdf:RDF>`)).resolves
+          .toBeRdfIsomorphic([
+            quad('http://example.com', 'http://purl.org/dc/terms/title', '"ab"'),
+          ]);
+      });
+
       it('DOCTYPE and ENTITY\'s', async() => {
         await expect(parse(parser, `<!DOCTYPE rdf:RDF
 [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
